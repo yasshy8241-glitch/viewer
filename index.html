@@ -3,174 +3,912 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stream Vertical Studio (YouTube & Twitch)</title>
+  <title>Stream Vertical Studio</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-    };
-  </script>
-  <!-- React & ReactDOM (UMD) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel (ブラウザ内JSX変換) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Twitch Embed API (マルチ視聴時の音量制御用) -->
-  <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+  <!-- Twitch Embed API (マルチ音量制御用) -->
+  <script src="https://player.twitch.tv/js/embed/v1.js" async></script>
   <style>
+    :root {
+      --bg-app: #f8fafc;
+      --bg-header: #ffffff;
+      --bg-panel: #ffffff;
+      --bg-sub: #f1f5f9;
+      --bg-input: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --text-muted: #64748b;
+      --border-col: #e2e8f0;
+    }
+    html.dark {
+      --bg-app: #09090b;
+      --bg-header: #18181b;
+      --bg-panel: #18181b;
+      --bg-sub: #09090b;
+      --bg-input: #09090b;
+      --text-main: #f4f4f5;
+      --text-sub: #a1a1aa;
+      --text-muted: #71717a;
+      --border-col: #27272a;
+    }
     body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
       margin: 0;
       padding: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: background-color 0.2s, color 0.2s;
     }
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #94a3b8;
-      border-radius: 3px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-      background: #3f3f46;
-    }
+    .theme-header { background-color: var(--bg-header); border-color: var(--border-col); }
+    .theme-panel { background-color: var(--bg-panel); border-color: var(--border-col); }
+    .theme-sub { background-color: var(--bg-sub); border-color: var(--border-col); }
+    .theme-input { background-color: var(--bg-input); border-color: var(--border-col); color: var(--text-main); }
+    .theme-border { border-color: var(--border-col); }
+    .theme-text { color: var(--text-main); }
+    .theme-text-sub { color: var(--text-sub); }
+    .theme-text-muted { color: var(--text-muted); }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200">
-  <div id="root"></div>
+<body class="flex flex-col h-screen w-screen overflow-hidden">
 
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+  <!-- ==================== トップヘッダー ==================== -->
+  <header class="theme-header border-b px-3 py-2 shrink-0 z-20 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <!-- ロゴ ＆ 現在のレイアウト状態バッジ -->
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 via-indigo-600 to-purple-600 flex items-center justify-center font-bold text-xs text-white shadow">
+          ▶
+        </div>
+        <span class="font-bold text-sm tracking-tight theme-text">Stream Vertical Studio</span>
+        <span id="layout-status-badge" class="text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+          📱 縦長 (動画下チャット)
+        </span>
+      </div>
 
-    const THEME_STORAGE_KEY = 'stream_vertical_studio_theme';
+      <!-- モード・比率・テーマ切替ボタン群 -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- シングル / 3画面マルチ 切替 -->
+        <div class="flex items-center theme-sub p-0.5 rounded-lg border text-xs">
+          <button id="btn-mode-single" onclick="setViewMode('single')" class="px-2.5 py-1 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm">
+            シングル視聴
+          </button>
+          <button id="btn-mode-triple" onclick="setViewMode('triple')" class="px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub">
+            縦3画面マルチ
+          </button>
+        </div>
+
+        <!-- 画面比率ロック切替 (シングル時のみ表示) -->
+        <div id="orientation-controls" class="flex items-center theme-sub p-0.5 rounded-lg border text-xs">
+          <button id="btn-ori-auto" onclick="setOrientationLock('auto')" class="px-2 py-1 rounded-md transition-colors bg-indigo-600 text-white font-medium">
+            自動検知
+          </button>
+          <button id="btn-ori-portrait" onclick="setOrientationLock('portrait')" class="px-2 py-1 rounded-md transition-colors theme-text-sub">
+            縦長固定
+          </button>
+          <button id="btn-ori-landscape" onclick="setOrientationLock('landscape')" class="px-2 py-1 rounded-md transition-colors theme-text-sub">
+            横長固定
+          </button>
+        </div>
+
+        <!-- ライト / ダークモード切替 (状態記憶) -->
+        <button id="btn-theme-toggle" onclick="toggleTheme()" class="px-2.5 py-1 theme-sub hover:opacity-80 rounded-lg text-xs border font-medium transition-colors flex items-center gap-1 theme-text">
+          🌙 ダークモードへ
+        </button>
+
+        <!-- 操作バー折りたたみ -->
+        <button id="btn-collapse-header" onclick="toggleHeaderCollapse()" class="px-2 py-1 theme-sub hover:opacity-80 rounded-lg text-xs border transition-colors theme-text-sub">
+          ▲ 最小化
+        </button>
+      </div>
+    </div>
+
+    <!-- シングルモード用 URL入力＆調整バー -->
+    <div id="single-toolbar" class="mt-2 pt-2 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
+      <form onsubmit="handleSingleSubmit(event)" class="flex-1 min-w-[240px] flex items-center gap-1.5">
+        <span id="single-platform-badge" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded text-white shrink-0"></span>
+        <input
+          id="single-url-input"
+          type="text"
+          placeholder="YouTube または Twitch のURLを貼り付けて「反映」"
+          class="flex-1 theme-input border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+        />
+        <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shrink-0 shadow-sm">
+          反映
+        </button>
+      </form>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div id="single-height-slider-wrap" class="flex items-center gap-1.5 theme-sub px-2.5 py-1 rounded-lg border">
+          <span class="text-[11px] theme-text-sub">動画の高さ:</span>
+          <input
+            id="single-height-slider"
+            type="range"
+            min="25"
+            max="75"
+            value="42"
+            oninput="handleHeightSlider(this.value)"
+            class="w-20 accent-indigo-600 cursor-pointer"
+          />
+        </div>
+
+        <button id="btn-single-chat-toggle" onclick="toggleSingleChat()" class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600">
+          💬 チャット表示中
+        </button>
+      </div>
+    </div>
+
+    <!-- 3画面マルチモード用 ワンボタン音声バランサーバー -->
+    <div id="triple-toolbar" class="hidden mt-2 pt-2 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="theme-text-sub font-medium mr-1">🔊 ワンボタンメイン音声:</span>
+        <button id="btn-main-audio-0" onclick="focusMainAudio(0)" class="px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1">
+          👑 SLOT 1 をメイン
+        </button>
+        <button id="btn-main-audio-1" onclick="focusMainAudio(1)" class="px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1">
+          🔈 SLOT 2 をメイン
+        </button>
+        <button id="btn-main-audio-2" onclick="focusMainAudio(2)" class="px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1">
+          🔈 SLOT 3 をメイン
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center theme-sub px-2 py-0.5 rounded-lg border gap-1">
+          <span class="text-[11px] theme-text-sub">他枠の音量:</span>
+          <button id="btn-subvol-0" onclick="setSubVolumeLevel(0)" class="px-2 py-0.5 rounded text-[11px] transition-colors">ミュート(0%)</button>
+          <button id="btn-subvol-15" onclick="setSubVolumeLevel(15)" class="px-2 py-0.5 rounded text-[11px] transition-colors">小(15%)</button>
+          <button id="btn-subvol-30" onclick="setSubVolumeLevel(30)" class="px-2 py-0.5 rounded text-[11px] transition-colors">中(30%)</button>
+        </div>
+
+        <button onclick="setAllVolumes(50, false)" class="px-2.5 py-1 theme-sub hover:opacity-80 rounded-md border text-[11px] transition-colors theme-text">
+          すべて均等(50%)
+        </button>
+        <button onclick="setAllVolumes(0, true)" class="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-md border border-rose-500/30 text-[11px] transition-colors">
+          🔇 全ミュート
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== メインビューポート ==================== -->
+  <main class="flex-1 overflow-hidden relative">
+    <!-- 1. シングル視聴ビュー -->
+    <div id="single-view" class="w-full h-full flex flex-col overflow-hidden">
+      <!-- 動画領域 -->
+      <div id="single-video-pane" style="height: 42%;" class="w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center">
+        <div id="single-video-container" class="w-full h-full flex items-center justify-center">
+          <div class="text-center p-6 text-zinc-400 text-xs space-y-1.5 select-none">
+            <p class="text-sm text-zinc-200 font-medium">YouTube または Twitch のURLを入力してください</p>
+            <p class="text-[11px] text-zinc-400">ライブ配信・通常の動画・ショート動画すべてに対応しています</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- チャット領域 -->
+      <div id="single-chat-pane" class="flex-1 w-full min-h-0 overflow-hidden flex flex-col theme-panel">
+        <div class="flex items-center justify-between px-3 py-1.5 theme-sub border-b shrink-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="single-chat-dot" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span id="single-chat-title" class="text-xs font-semibold theme-text truncate">ライブチャット</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <a id="single-chat-popout" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-1.5 py-0.5 theme-text-sub hover:opacity-80 rounded text-xs">
+              ↗ ポップアウト
+            </a>
+            <button onclick="toggleSingleChat()" class="p-1 theme-text-sub hover:text-rose-500 rounded text-xs" title="チャット欄を閉じる">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div id="single-chat-container" class="flex-1 flex flex-col relative overflow-hidden items-center justify-center text-xs theme-text-muted">
+          動画URLを入力するとチャットが表示されます
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 縦3画面マルチビュー -->
+    <div id="triple-view" class="hidden w-full h-full grid grid-rows-3 gap-1 p-1 overflow-hidden">
+      <!-- JavaScriptで3スロット分を初期生成します -->
+    </div>
+  </main>
+
+  <!-- ==================== アプリケーションロジック ==================== -->
+  <script>
+    const THEME_KEY = 'stream_vertical_studio_theme';
+    const embedDomain = window.location.hostname || 'localhost';
+
+    // 状態管理オブジェクト
+    const state = {
+      theme: 'light', // デフォルトはライトモード
+      viewMode: 'single', // 'single' | 'triple'
+      orientationLock: 'auto', // 'auto' | 'portrait' | 'landscape'
+      isWindowPortrait: window.innerHeight >= window.innerWidth,
+      isHeaderCollapsed: false,
+      single: {
+        media: null,
+        showChat: true,
+        videoHeight: 42
+      },
+      triple: {
+        activeAudioIndex: 0,
+        subVolumeLevel: 15,
+        slots: [
+          { id: 1, label: 'SLOT 1', media: null, showChat: true, volume: 100, muted: false, twitchPlayer: null },
+          { id: 2, label: 'SLOT 2', media: null, showChat: true, volume: 15, muted: false, twitchPlayer: null },
+          { id: 3, label: 'SLOT 3', media: null, showChat: true, volume: 15, muted: false, twitchPlayer: null }
+        ]
+      }
+    };
 
     // ==========================================
-    // URL解析ヘルパー: YouTube と Twitch を自動判別
+    // URL解析 (YouTube & Twitch 自動判別)
     // ==========================================
-    const parseMediaInput = (input) => {
+    function parseMediaInput(input) {
       if (!input || !input.trim()) return null;
       const trimmed = input.trim();
 
-      // 1. Twitch URL 判定
+      // Twitch判定
       if (/twitch\.tv/i.test(trimmed)) {
-        // Twitch アーカイブ動画 (例: twitch.tv/videos/123456789)
         const videoMatch = trimmed.match(/twitch\.tv\/(?:[a-zA-Z0-9_]+\/v(?:ideo)?\/|videos\/)(\d+)/i);
         if (videoMatch) {
           return { platform: 'twitch', type: 'video', id: videoMatch[1], channel: null };
         }
-        // Twitch ライブチャンネル (例: twitch.tv/fps_shaka)
         const channelMatch = trimmed.match(/twitch\.tv\/([a-zA-Z0-9_]+)/i);
         if (channelMatch) {
-          return { platform: 'twitch', type: 'channel', id: channelMatch[1].toLowerCase(), channel: channelMatch[1].toLowerCase() };
+          const ch = channelMatch[1].toLowerCase();
+          return { platform: 'twitch', type: 'channel', id: ch, channel: ch };
         }
       }
 
-      // 2. YouTube URL 判定 (watch?v=, youtu.be/, live/, shorts/, embed/)
+      // YouTube判定
       const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
       const ytMatch = trimmed.match(ytRegex);
       if (ytMatch) {
         return { platform: 'youtube', type: 'video', id: ytMatch[1] };
       }
 
-      // 3. ID直接入力時の判定 (11桁ならYouTube、それ以外の英数字ならTwitchチャンネルとして扱う)
+      // ID直接入力
       if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
         return { platform: 'youtube', type: 'video', id: trimmed };
       }
       if (/^[a-zA-Z0-9_]{3,25}$/.test(trimmed)) {
-        return { platform: 'twitch', type: 'channel', id: trimmed.toLowerCase(), channel: trimmed.toLowerCase() };
+        const ch = trimmed.toLowerCase();
+        return { platform: 'twitch', type: 'channel', id: ch, channel: ch };
+      }
+      return null;
+    }
+
+    // ==========================================
+    // テーマ管理 (デフォルト: ライト / localStorage記憶)
+    // ==========================================
+    function initTheme() {
+      try {
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved === 'dark' || saved === 'light') {
+          state.theme = saved;
+        }
+      } catch (e) {}
+      applyThemeUI();
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem(THEME_KEY, state.theme);
+      } catch (e) {}
+      applyThemeUI();
+      // チャットの背景テーマも更新（動画自体はリセットしない）
+      renderSingleChat();
+      state.triple.slots.forEach((_, idx) => renderTripleChat(idx));
+    }
+
+    function applyThemeUI() {
+      const root = document.documentElement;
+      const btn = document.getElementById('btn-theme-toggle');
+      if (state.theme === 'dark') {
+        root.classList.add('dark');
+        btn.textContent = '☀️ ライトモードへ';
+      } else {
+        root.classList.remove('dark');
+        btn.textContent = '🌙 ダークモードへ';
+      }
+    }
+
+    // ==========================================
+    // レイアウト・モード制御
+    // ==========================================
+    function isPortraitEffective() {
+      if (state.orientationLock === 'auto') return state.isWindowPortrait;
+      return state.orientationLock === 'portrait';
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      updateLayoutUI();
+    }
+
+    function setOrientationLock(lock) {
+      state.orientationLock = lock;
+      updateLayoutUI();
+    }
+
+    function toggleHeaderCollapse() {
+      state.isHeaderCollapsed = !state.isHeaderCollapsed;
+      updateLayoutUI();
+    }
+
+    function handleHeightSlider(val) {
+      state.single.videoHeight = Number(val);
+      updateLayoutUI();
+    }
+
+    function toggleSingleChat() {
+      state.single.showChat = !state.single.showChat;
+      updateLayoutUI();
+    }
+
+    function updateLayoutUI() {
+      const isPortrait = isPortraitEffective();
+      const isSingle = state.viewMode === 'single';
+
+      // ステータスバッジ
+      const badge = document.getElementById('layout-status-badge');
+      if (isSingle) {
+        if (isPortrait) {
+          badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-emerald-500/10 text-emerald-600 border-emerald-500/30';
+          badge.textContent = '📱 縦長 (動画下チャット)';
+        } else {
+          badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-sky-500/10 text-sky-600 border-sky-500/30';
+          badge.textContent = '🖥️ 横長 (動画横チャット)';
+        }
+      } else {
+        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-purple-500/10 text-purple-600 border-purple-500/30';
+        badge.textContent = '🎞️ 縦3画面マルチ';
       }
 
-      return null;
-    };
+      // モードボタン
+      document.getElementById('btn-mode-single').className = isSingle
+        ? 'px-2.5 py-1 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm'
+        : 'px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub';
+      document.getElementById('btn-mode-triple').className = !isSingle
+        ? 'px-2.5 py-1 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm'
+        : 'px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub';
 
-    // YouTube IFrame PlayerへpostMessageで音量・ミュート命令を送信
-    const sendYouTubeCommand = (iframeEl, func, args = []) => {
-      if (!iframeEl || !iframeEl.contentWindow) return;
-      iframeEl.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func, args }),
-        '*'
-      );
-    };
+      // 画面比率固定ボタン
+      const oriControls = document.getElementById('orientation-controls');
+      oriControls.style.display = isSingle ? 'flex' : 'none';
+      ['auto', 'portrait', 'landscape'].forEach((type) => {
+        const b = document.getElementById('btn-ori-' + type);
+        b.className = state.orientationLock === type
+          ? 'px-2 py-1 rounded-md transition-colors bg-indigo-600 text-white font-medium'
+          : 'px-2 py-1 rounded-md transition-colors theme-text-sub';
+      });
 
-    // ==========================================
-    // コンポーネント: 動画プレイヤー (YouTube & Twitch 両対応 + 音量制御)
-    // ==========================================
-    const UniversalVideoPlayer = ({ media, embedDomain, volume = 100, muted = false }) => {
-      const ytIframeRef = useRef(null);
-      const twitchContainerRef = useRef(null);
-      const twitchPlayerRef = useRef(null);
+      // 折りたたみボタンとツールバー
+      document.getElementById('btn-collapse-header').textContent = state.isHeaderCollapsed ? '▼ 操作バーを開く' : '▲ 最小化';
+      document.getElementById('single-toolbar').style.display = (!state.isHeaderCollapsed && isSingle) ? 'flex' : 'none';
+      document.getElementById('triple-toolbar').style.display = (!state.isHeaderCollapsed && !isSingle) ? 'flex' : 'none';
 
-      // YouTube用の音量反映関数
-      const applyYouTubeAudio = (vol, isMuted) => {
-        if (!ytIframeRef.current) return;
-        if (isMuted || vol === 0) {
-          sendYouTubeCommand(ytIframeRef.current, 'mute');
-          sendYouTubeCommand(ytIframeRef.current, 'setVolume', [0]);
+      // 3画面の各ヘッダー折りたたみ連動
+      state.triple.slots.forEach((_, idx) => {
+        const slotHeader = document.getElementById('triple-slot-header-' + idx);
+        if (slotHeader) {
+          slotHeader.style.display = state.isHeaderCollapsed ? 'none' : 'flex';
+        }
+      });
+
+      // メインビューの切り替え
+      const singleView = document.getElementById('single-view');
+      const tripleView = document.getElementById('triple-view');
+      singleView.style.display = isSingle ? 'flex' : 'none';
+      tripleView.style.display = isSingle ? 'none' : 'grid';
+
+      // シングルビューの縦長/横長レイアウト制御
+      singleView.className = 'w-full h-full flex overflow-hidden ' + (isPortrait ? 'flex-col' : 'flex-row');
+      const videoPane = document.getElementById('single-video-pane');
+      const chatPane = document.getElementById('single-chat-pane');
+      const sliderWrap = document.getElementById('single-height-slider-wrap');
+      const chatBtn = document.getElementById('btn-single-chat-toggle');
+
+      sliderWrap.style.display = (isPortrait && state.single.showChat) ? 'flex' : 'none';
+
+      if (!state.single.showChat) {
+        videoPane.style.height = '100%';
+        videoPane.style.width = '100%';
+        videoPane.className = 'w-full h-full bg-black relative flex items-center justify-center';
+        chatPane.style.display = 'none';
+        chatBtn.className = 'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors theme-sub theme-text-sub';
+        chatBtn.textContent = '💬 チャット非表示 (全画面動画)';
+      } else {
+        chatPane.style.display = 'flex';
+        chatBtn.className = 'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600';
+        chatBtn.textContent = '💬 チャット表示中';
+
+        if (isPortrait) {
+          videoPane.style.height = state.single.videoHeight + '%';
+          videoPane.style.width = '100%';
+          videoPane.className = 'w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center';
+          chatPane.className = 'flex-1 w-full min-h-0 overflow-hidden flex flex-col theme-panel';
         } else {
-          sendYouTubeCommand(ytIframeRef.current, 'unMute');
-          sendYouTubeCommand(ytIframeRef.current, 'setVolume', [vol]);
+          videoPane.style.height = '100%';
+          videoPane.style.width = '';
+          videoPane.className = 'flex-1 h-full border-r theme-border bg-black relative flex items-center justify-center';
+          chatPane.className = 'w-80 lg:w-96 h-full shrink-0 overflow-hidden flex flex-col theme-panel';
         }
-      };
+      }
+    }
 
-      // Twitch用の音量反映関数 (Twitch APIは 0.0 〜 1.0)
-      const applyTwitchAudio = (vol, isMuted) => {
-        const player = twitchPlayerRef.current;
-        if (!player) return;
-        try {
-          if (isMuted || vol === 0) {
-            player.setMuted(true);
-            player.setVolume(0);
-          } else {
-            player.setMuted(false);
-            player.setVolume(Math.max(0, Math.min(1, vol / 100)));
-          }
-        } catch (err) {
-          // プレイヤー準備前のエラーを無視
+    // ==========================================
+    // 動画・チャットの描画と制御 (シングル)
+    // ==========================================
+    function handleSingleSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('single-url-input').value;
+      const parsed = parseMediaInput(input);
+      if (!parsed) return;
+      state.single.media = parsed;
+
+      const badge = document.getElementById('single-platform-badge');
+      badge.classList.remove('hidden', 'bg-red-600', 'bg-purple-600');
+      badge.classList.add(parsed.platform === 'twitch' ? 'bg-purple-600' : 'bg-red-600');
+      badge.textContent = parsed.platform === 'twitch' ? 'Twitch' : 'YouTube';
+
+      renderSingleVideo();
+      renderSingleChat();
+    }
+
+    function renderSingleVideo() {
+      const container = document.getElementById('single-video-container');
+      const media = state.single.media;
+      if (!media) return;
+
+      container.innerHTML = '';
+      if (media.platform === 'youtube') {
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/embed/' + media.id + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1';
+        iframe.className = 'w-full h-full border-0';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        iframe.allowFullscreen = true;
+        container.appendChild(iframe);
+      } else {
+        const iframe = document.createElement('iframe');
+        const param = media.type === 'video' ? ('video=' + media.id) : ('channel=' + media.id);
+        iframe.src = 'https://player.twitch.tv/?' + param + '&parent=' + embedDomain + '&autoplay=true';
+        iframe.className = 'w-full h-full border-0';
+        iframe.allowFullscreen = true;
+        container.appendChild(iframe);
+      }
+    }
+
+    function renderSingleChat() {
+      const container = document.getElementById('single-chat-container');
+      const popout = document.getElementById('single-chat-popout');
+      const title = document.getElementById('single-chat-title');
+      const dot = document.getElementById('single-chat-dot');
+      const media = state.single.media;
+      const isDark = state.theme === 'dark';
+
+      if (!media) return;
+      container.innerHTML = '';
+
+      if (media.platform === 'youtube') {
+        title.textContent = 'YouTube チャット';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 shrink-0';
+        popout.href = 'https://www.youtube.com/live_chat?is_popout=1&v=' + media.id;
+        popout.classList.remove('hidden');
+
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/live_chat?v=' + media.id + '&embed_domain=' + embedDomain + (isDark ? '&dark_theme=1' : '');
+        iframe.className = 'w-full h-full border-0';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        container.appendChild(iframe);
+      } else if (media.platform === 'twitch') {
+        title.textContent = 'Twitch チャット';
+        dot.className = 'w-2 h-2 rounded-full bg-purple-500 shrink-0';
+
+        if (media.type === 'channel' || media.channel) {
+          const ch = media.channel || media.id;
+          popout.href = 'https://www.twitch.tv/popout/' + ch + '/chat?popout=';
+          popout.classList.remove('hidden');
+
+          const iframe = document.createElement('iframe');
+          iframe.src = 'https://www.twitch.tv/embed/' + ch + '/chat?parent=' + embedDomain + (isDark ? '&darkpopout' : '');
+          iframe.className = 'w-full h-full border-0';
+          container.appendChild(iframe);
+        } else {
+          popout.classList.add('hidden');
+          container.textContent = 'Twitchアーカイブ動画再生中です（右上の✕でチャット欄を閉じられます）';
         }
-      };
+      }
+    }
 
-      // Twitch Player インスタンスの生成と切り替え
-      useEffect(() => {
-        if (!media || media.platform !== 'twitch') {
-          twitchPlayerRef.current = null;
-          return;
-        }
-        if (!twitchContainerRef.current) return;
+    // ==========================================
+    // 縦3画面マルチモードの構築と音声制御
+    // ==========================================
+    function initTripleSlotsDOM() {
+      const tripleView = document.getElementById('triple-view');
+      tripleView.innerHTML = '';
 
-        // 既存のDOMをクリア
-        twitchContainerRef.current.innerHTML = '';
-        twitchPlayerRef.current = null;
+      state.triple.slots.forEach((slot, idx) => {
+        const slotEl = document.createElement('div');
+        slotEl.id = 'triple-slot-' + idx;
+        slotEl.className = 'flex flex-col theme-panel rounded-lg border overflow-hidden min-h-0 transition-colors';
+        slotEl.innerHTML = `
+          <div id="triple-slot-header-${idx}" class="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1 theme-sub border-b text-[11px] shrink-0">
+            <div class="flex items-center gap-1.5 flex-1 min-w-[200px]">
+              <span id="triple-slot-badge-${idx}" class="px-1.5 py-0.5 rounded font-bold text-[10px] shrink-0 border">
+                ${slot.label}
+              </span>
+              <span id="triple-slot-platform-${idx}" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded text-white shrink-0"></span>
+              <form onsubmit="handleTripleSubmit(event, ${idx})" class="flex items-center gap-1 flex-1 max-w-md">
+                <input
+                  id="triple-input-${idx}"
+                  type="text"
+                  placeholder="YouTube / Twitch URL を入力して「反映」"
+                  class="w-full theme-input border rounded px-2 py-0.5 text-[11px] focus:outline-none focus:border-indigo-500"
+                />
+                <button type="submit" class="px-2.5 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-medium shrink-0">
+                  反映
+                </button>
+              </form>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                id="triple-btn-focus-${idx}"
+                onclick="focusMainAudio(${idx})"
+                class="px-2 py-0.5 rounded border text-[10px] font-medium transition-all flex items-center gap-1"
+              >
+                🔊 メインにする
+              </button>
+
+              <div class="flex items-center gap-1 theme-panel px-2 py-0.5 rounded border">
+                <button id="triple-btn-mute-${idx}" onclick="toggleSlotMute(${idx})" class="text-xs hover:opacity-80" title="個別ミュート切替">
+                  🔊
+                </button>
+                <input
+                  id="triple-slider-vol-${idx}"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="${slot.volume}"
+                  oninput="handleSlotVolumeSlider(${idx}, this.value)"
+                  class="w-16 accent-amber-500 cursor-pointer"
+                />
+                <span id="triple-label-vol-${idx}" class="text-[10px] theme-text-sub w-7 text-right">
+                  ${slot.volume}%
+                </span>
+              </div>
+
+              <button
+                id="triple-btn-chat-${idx}"
+                onclick="toggleTripleSlotChat(${idx})"
+                class="px-2 py-0.5 rounded border text-[10px] font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600"
+              >
+                横チャットON
+              </button>
+            </div>
+          </div>
+
+          <div class="flex-1 flex flex-row min-h-0 overflow-hidden">
+            <div id="triple-video-container-${idx}" class="flex-1 h-full bg-black relative flex items-center justify-center">
+              <div class="text-zinc-500 text-xs select-none px-4 text-center">
+                ${slot.label}: 上部の入力欄にYouTube / TwitchのURLを貼り付けて「反映」を押してください
+              </div>
+            </div>
+
+            <div id="triple-chat-pane-${idx}" class="w-60 sm:w-72 md:w-80 h-full border-l theme-border shrink-0 overflow-hidden flex flex-col theme-panel">
+              <div class="flex items-center justify-between px-2.5 py-1 theme-sub border-b shrink-0">
+                <span id="triple-chat-title-${idx}" class="text-[11px] font-semibold theme-text truncate">チャット</span>
+                <div class="flex items-center gap-1">
+                  <a id="triple-chat-popout-${idx}" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-[10px] theme-text-sub hover:opacity-80 px-1">↗</a>
+                  <button onclick="toggleTripleSlotChat(${idx})" class="text-[11px] theme-text-sub hover:text-rose-500 px-1">✕</button>
+                </div>
+              </div>
+              <div id="triple-chat-container-${idx}" class="flex-1 flex items-center justify-center text-[11px] theme-text-muted p-2 text-center">
+                URL反映後に表示
+              </div>
+            </div>
+          </div>
+        `;
+        tripleView.appendChild(slotEl);
+      });
+
+      updateTripleAudioUI();
+    }
+
+    function handleTripleSubmit(e, idx) {
+      e.preventDefault();
+      const inputVal = document.getElementById('triple-input-' + idx).value;
+      const parsed = parseMediaInput(inputVal);
+      if (!parsed) return;
+
+      const slot = state.triple.slots[idx];
+      slot.media = parsed;
+      slot.twitchPlayer = null;
+
+      const platBadge = document.getElementById('triple-slot-platform-' + idx);
+      platBadge.classList.remove('hidden', 'bg-red-600', 'bg-purple-600');
+      platBadge.classList.add(parsed.platform === 'twitch' ? 'bg-purple-600' : 'bg-red-600');
+      platBadge.textContent = parsed.platform === 'twitch' ? 'Twitch' : 'YouTube';
+
+      renderTripleVideo(idx);
+      renderTripleChat(idx);
+    }
+
+    function renderTripleVideo(idx) {
+      const slot = state.triple.slots[idx];
+      const container = document.getElementById('triple-video-container-' + idx);
+      if (!slot.media) return;
+
+      container.innerHTML = '';
+      if (slot.media.platform === 'youtube') {
+        const iframe = document.createElement('iframe');
+        iframe.id = 'triple-yt-iframe-' + idx;
+        iframe.src = 'https://www.youtube.com/embed/' + slot.media.id + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1';
+        iframe.className = 'w-full h-full border-0';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        iframe.allowFullscreen = true;
+        iframe.onload = () => {
+          setTimeout(() => applySlotAudioToPlayer(idx), 700);
+        };
+        container.appendChild(iframe);
+      } else if (slot.media.platform === 'twitch') {
+        const mountDiv = document.createElement('div');
+        mountDiv.className = 'w-full h-full';
+        container.appendChild(mountDiv);
 
         if (window.Twitch && window.Twitch.Player) {
-          const options = {
+          const opts = {
             width: '100%',
             height: '100%',
             parent: [embedDomain],
             autoplay: true,
-            muted: muted || volume === 0,
+            muted: slot.muted || slot.volume === 0
           };
-          if (media.type === 'video') {
-            options.video = media.id;
-          } else {
-            options.channel = media.id;
-          }
+          if (slot.media.type === 'video') opts.video = slot.media.id;
+          else opts.channel = slot.media.id;
 
-          const player = new window.Twitch.Player(twitchContainerRef.current, options);
-          twitchPlayerRef.current = player;
-
+          const player = new window.Twitch.Player(mountDiv, opts);
+          slot.twitchPlayer = player;
           player.addEventListener(window.Twitch.Player.READY, () => {
-            applyTwitchAudio(volume, muted);
+            applySlotAudioToPlayer(idx);
           });
+        } else {
+          const iframe = document.createElement('iframe');
+          const param = slot.media.type === 'video' ? ('video=' + slot.media.id) : ('channel=' + slot.media.id);
+          iframe.src = 'https://player.twitch.tv/?' + param + '&parent=' + embedDomain + '&autoplay=true';
+          iframe.className = 'w-full h-full border-0';
+          iframe.allowFullscreen = true;
+          mountDiv.appendChild(iframe);
         }
-      }, [media?.platform, media?.type, media?.id, embedDomain]);
+      }
+    }
 
-      // 音量・ミュート状態が変化した際にリアルタイム反映
-      useEffect(() => {
-        if (!media) return;
-        if (media.platform === 'youtube') {
-          applyYouTubeAudio(volume, muted);
+    function renderTripleChat(idx) {
+      const slot = state.triple.slots[idx];
+      const container = document.getElementById('triple-chat-container-' + idx);
+      const popout = document.getElementById('triple-chat-popout-' + idx);
+      const title = document.getElementById('triple-chat-title-' + idx);
+      const isDark = state.theme === 'dark';
+
+      if (!slot.media) return;
+      container.innerHTML = '';
+
+      if (slot.media.platform === 'youtube') {
+        title.textContent = 'YouTube チャット';
+        popout.href = 'https://www.youtube.com/live_chat?is_popout=1&v=' + slot.media.id;
+        popout.classList.remove('hidden');
+
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/live_chat?v=' + slot.media.id + '&embed_domain=' + embedDomain + (isDark ? '&dark_theme=1' : '');
+        iframe.className = 'w-full h-full border-0';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        container.appendChild(iframe);
+      } else if (slot.media.platform === 'twitch') {
+        title.textContent = 'Twitch チャット';
+        if (slot.media.type === 'channel' || slot.media.channel) {
+          const ch = slot.media.channel || slot.media.id;
+          popout.href = 'https://www.twitch.tv/popout/' + ch + '/chat?popout=';
+          popout.classList.remove('hidden');
+
+          const iframe = document.createElement('iframe');
+          iframe.src = 'https://www.twitch.tv/embed/' + ch + '/chat?parent=' + embedDomain + (isDark ? '&darkpopout' : '');
+          iframe.className = 'w-full h-full border-0';
+          container.appendChild(iframe);
+        } else {
+          popout.classList.add('hidden');
+          container.textContent = 'アーカイブ再生中';
+        }
+      }
+    }
+
+    function toggleTripleSlotChat(idx) {
+      const slot = state.triple.slots[idx];
+      slot.showChat = !slot.showChat;
+      const pane = document.getElementById('triple-chat-pane-' + idx);
+      const btn = document.getElementById('triple-btn-chat-' + idx);
+
+      if (slot.showChat) {
+        pane.style.display = 'flex';
+        btn.className = 'px-2 py-0.5 rounded border text-[10px] font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600';
+        btn.textContent = '横チャットON';
+      } else {
+        pane.style.display = 'none';
+        btn.className = 'px-2 py-0.5 rounded border text-[10px] font-medium transition-colors theme-panel theme-text-sub';
+        btn.textContent = 'チャットOFF';
+      }
+    }
+
+    // プレイヤーへの実際の音量命令送信
+    function applySlotAudioToPlayer(idx) {
+      const slot = state.triple.slots[idx];
+      if (!slot.media) return;
+
+      const effectiveVol = slot.muted ? 0 : slot.volume;
+
+      if (slot.media.platform === 'youtube') {
+        const iframe = document.getElementById('triple-yt-iframe-' + idx);
+        if (iframe && iframe.contentWindow) {
+          const sendCmd = (func, args = []) => {
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+          };
+          if (effectiveVol === 0) {
+            sendCmd('mute');
+            sendCmd('setVolume', [0]);
+          } else {
+            sendCmd('unMute');
+            sendCmd('setVolume', [effectiveVol]);
+          }
+        }
+      } else if (slot.media.platform === 'twitch' && slot.twitchPlayer) {
+        try {
+          if (effectiveVol === 0) {
+            slot.twitchPlayer.setMuted(true);
+            slot.twitchPlayer.setVolume(0);
+          } else {
+            slot.twitchPlayer.setMuted(false);
+            slot.twitchPlayer.setVolume(Math.max(0, Math.min(1, effectiveVol / 100)));
+          }
+        } catch (e) {}
+      }
+    }
+
+    // ★ ワンボタンで指定枠をメイン音声(100%)、他枠をサブ音量に設定
+    function focusMainAudio(targetIdx) {
+      state.triple.activeAudioIndex = targetIdx;
+      const subVol = state.triple.subVolumeLevel;
+
+      state.triple.slots.forEach((slot, idx) => {
+        if (idx === targetIdx) {
+          slot.volume = 100;
+          slot.muted = false;
+        } else {
+          slot.volume = subVol;
+          slot.muted = (subVol === 0);
+        }
+        applySlotAudioToPlayer(idx);
+      });
+      updateTripleAudioUI();
+    }
+
+    function setSubVolumeLevel(val) {
+      state.triple.subVolumeLevel = val;
+      if (state.triple.activeAudioIndex !== null) {
+        focusMainAudio(state.triple.activeAudioIndex);
+      } else {
+        updateTripleAudioUI();
+      }
+    }
+
+    function setAllVolumes(vol, muteAll) {
+      state.triple.activeAudioIndex = null;
+      state.triple.slots.forEach((slot, idx) => {
+        slot.volume = vol;
+        slot.muted = muteAll;
+        applySlotAudioToPlayer(idx);
+      });
+      updateTripleAudioUI();
+    }
+
+    function handleSlotVolumeSlider(idx, val) {
+      state.triple.activeAudioIndex = null;
+      const num = Number(val);
+      const slot = state.triple.slots[idx];
+      slot.volume = num;
+      slot.muted = (num === 0);
+      applySlotAudioToPlayer(idx);
+      updateTripleAudioUI();
+    }
+
+    function toggleSlotMute(idx) {
+      state.triple.activeAudioIndex = null;
+      const slot = state.triple.slots[idx];
+      slot.muted = !slot.muted;
+      if (!slot.muted && slot.volume === 0) {
+        slot.volume = 50;
+      }
+      applySlotAudioToPlayer(idx);
+      updateTripleAudioUI();
+    }
+
+    function updateTripleAudioUI() {
+      // サブ音量プリセットボタンのハイライト
+      [0, 15, 30].forEach((val) => {
+        const b = document.getElementById('btn-subvol-' + val);
+        if (b) {
+          b.className = state.triple.subVolumeLevel === val
+            ? 'px-2 py-0.5 rounded text-[11px] transition-colors bg-indigo-600 text-white font-medium'
+            : 'px-2 py-0.5 rounded text-[11px] transition-colors theme-text-sub';
+        }
+      });
+
+      // 各スロットのUI更新
+      state.triple.slots.forEach((slot, idx) => {
+        const isMain = state.triple.activeAudioIndex === idx;
+        const effectiveVol = slot.muted ? 0 : slot.volume;
+
+        // 上部バーのワンボタン
+        const topBtn = document.getElementById('btn-main-audio-' + idx);
+        if (topBtn) {
+          topBtn.className = isMain
+            ? 'px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1 bg-amber-500/15 border-amber-500 text-amber-600 shadow-sm'
+            : 'px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1 theme-sub theme-text-sub';
+          topBtn.innerHTML = (isMain ? '👑 ' : '🔈 ') + slot.label + ' をメイン';
+        }
+
+        // スロット枠線
+        const slotEl = document.getElementById('triple-slot-' + idx);
+        if (slotEl) {
+          slotEl.className = 'flex flex-col theme-panel rounded-lg border overflow-hidden min-h-0 transition-colors ' +
+            (isMain ? 'border-amber-500 shadow-sm' : 'theme-border');
+        }
+
+        // スロットバッジ
+        const badgeEl = document.getElementById('triple-slot-badge-' + idx);
+        if (badgeEl) {
+          badgeEl.className = 'px-1.5 py-0.5 rounded font-bold text-[10px] shrink-0 border ' +
+            (isMain ? 'bg-amber-500/15 text-amber-600 border-amber-500/40' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30');
+        }
+
+        // スロット内メイン音声ボタン
+        const focusBtn = document.getElementById('triple-btn-focus-' + idx);
+        if (focusBtn) {
+          focusBtn.className = 'px-2 py-0.5 rounded border text-[10px] font-medium transition-all flex items-center gap-1 ' +
+            (isMain ? 'bg-amber-500/15 border-amber-500 text-amber-600' : 'theme-panel theme-text-sub hover:opacity-80');
+          focusBtn.textContent = isMain ? '👑 メイン音声中' : '🔊 メインにする';
+        }
+
+        // スライダー・ミュートアイコン・数値
+        const slider = document.getElementById('triple-slider-vol-' + idx);
+        if (slider) slider.value = effectiveVol;
+
+        const label = document.getElementById('triple-label-vol-' + idx);
+        if (label) label.textContent = effectiveVol + '%';
+
+        const muteBtn = document.getElementById('triple-btn-mute-' + idx);
+        if (muteBtn) {
+          muteBtn.textContent = effectiveVol === 0 ? '🔇' : (effectiveVol < 40 ? '🔉' : '🔊');
+        }
+      });
+    }
+
+    // ウィンドウリサイズ検知
+    window.addEventListener('resize', () => {
+      const nextPortrait = window.innerHeight >= window.innerWidth;
+      if (nextPortrait !== state.isWindowPortrait) {
+        state.isWindowPortrait = nextPortrait;
+        updateLayoutUI();
+      }
+    });
+
+    // 初期化実行
+    initTheme();
+    initTripleSlotsDOM();
+    updateLayoutUI();
+  </script>
+</body>
+</html>
