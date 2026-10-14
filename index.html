@@ -227,6 +227,7 @@
       isHeaderCollapsed: false,
       single: {
         media: null,
+        rawUrl: '',
         showChat: true,
         videoHeight: 42
       },
@@ -234,9 +235,9 @@
         activeAudioIndex: 0,
         subVolumeLevel: 15,
         slots: [
-          { id: 1, label: 'SLOT 1', media: null, showChat: true, volume: 100, muted: false, twitchPlayer: null },
-          { id: 2, label: 'SLOT 2', media: null, showChat: true, volume: 15, muted: false, twitchPlayer: null },
-          { id: 3, label: 'SLOT 3', media: null, showChat: true, volume: 15, muted: false, twitchPlayer: null }
+          { id: 1, label: 'SLOT 1', media: null, rawUrl: '', showChat: true, volume: 100, muted: false, twitchPlayer: null },
+          { id: 2, label: 'SLOT 2', media: null, rawUrl: '', showChat: true, volume: 15, muted: false, twitchPlayer: null },
+          { id: 3, label: 'SLOT 3', media: null, rawUrl: '', showChat: true, volume: 15, muted: false, twitchPlayer: null }
         ]
       }
     };
@@ -279,6 +280,21 @@
       return null;
     }
 
+    // メディアオブジェクトから標準URL文字列を生成
+    function buildStandardUrl(media, rawUrl) {
+      if (rawUrl && rawUrl.trim()) return rawUrl.trim();
+      if (!media) return '';
+      if (media.platform === 'youtube') {
+        return 'https://www.youtube.com/watch?v=' + media.id;
+      }
+      if (media.platform === 'twitch') {
+        return media.type === 'video'
+          ? 'https://www.twitch.tv/videos/' + media.id
+          : 'https://www.twitch.tv/' + media.id;
+      }
+      return '';
+    }
+
     // ==========================================
     // テーマ管理 (デフォルト: ライト / localStorage記憶)
     // ==========================================
@@ -298,9 +314,12 @@
         localStorage.setItem(THEME_KEY, state.theme);
       } catch (e) {}
       applyThemeUI();
-      // チャットの背景テーマも更新（動画自体はリセットしない）
-      renderSingleChat();
-      state.triple.slots.forEach((_, idx) => renderTripleChat(idx));
+      // 現在アクティブなモードのチャット背景テーマのみ更新
+      if (state.viewMode === 'single') {
+        renderSingleChat();
+      } else {
+        state.triple.slots.forEach((_, idx) => renderTripleChat(idx));
+      }
     }
 
     function applyThemeUI() {
@@ -316,15 +335,96 @@
     }
 
     // ==========================================
-    // レイアウト・モード制御
+    // プレイヤー停止処理（モード切替時の二重再生防止）
+    // ==========================================
+    function stopSinglePlayer() {
+      const videoContainer = document.getElementById('single-video-container');
+      const chatContainer = document.getElementById('single-chat-container');
+      if (videoContainer) {
+        videoContainer.innerHTML = `
+          <div class="text-center p-6 text-zinc-400 text-xs space-y-1.5 select-none">
+            <p class="text-sm text-zinc-200 font-medium">マルチ視聴モードへ移行したため停止中です</p>
+          </div>
+        `;
+      }
+      if (chatContainer) {
+        chatContainer.innerHTML = '停止中';
+      }
+    }
+
+    function stopAllTriplePlayers() {
+      state.triple.slots.forEach((slot, idx) => {
+        slot.twitchPlayer = null;
+        const videoContainer = document.getElementById('triple-video-container-' + idx);
+        const chatContainer = document.getElementById('triple-chat-container-' + idx);
+        if (videoContainer) {
+          videoContainer.innerHTML = `
+            <div class="text-zinc-500 text-xs select-none px-4 text-center">
+              ${slot.label}: シングル視聴モードへ移行したため停止中です
+            </div>
+          `;
+        }
+        if (chatContainer) {
+          chatContainer.innerHTML = '停止中';
+        }
+      });
+    }
+
+    // ==========================================
+    // レイアウト・モード制御（動画停止＆スロット1引き継ぎ）
     // ==========================================
     function isPortraitEffective() {
       if (state.orientationLock === 'auto') return state.isWindowPortrait;
       return state.orientationLock === 'portrait';
     }
 
-    function setViewMode(mode) {
-      state.viewMode = mode;
+    function setViewMode(nextMode) {
+      if (state.viewMode === nextMode) return;
+      const prevMode = state.viewMode;
+      state.viewMode = nextMode;
+
+      if (prevMode === 'single' && nextMode === 'triple') {
+        // 1. シングルで再生していた動画を完全に停止
+        stopSinglePlayer();
+
+        // 2. シングルで再生していた動画があれば、SLOT 1 (index: 0) に自動セット
+        if (state.single.media) {
+          const slot0 = state.triple.slots[0];
+          slot0.media = { ...state.single.media };
+          slot0.rawUrl = buildStandardUrl(state.single.media, state.single.rawUrl);
+
+          const input0 = document.getElementById('triple-input-0');
+          if (input0) input0.value = slot0.rawUrl;
+
+          updateTripleSlotPlatformBadge(0, slot0.media);
+        }
+
+        // 3. マルチ側の各スロットを描画・再生開始
+        state.triple.slots.forEach((slot, idx) => {
+          if (slot.media) {
+            renderTripleVideo(idx);
+            renderTripleChat(idx);
+          }
+        });
+      } else if (prevMode === 'triple' && nextMode === 'single') {
+        // 1. マルチで再生していたすべての動画を完全に停止
+        stopAllTriplePlayers();
+
+        // 2. もしシングルが空でSLOT 1に動画がある場合はシングル側にも引き継ぐ
+        if (!state.single.media && state.triple.slots[0].media) {
+          state.single.media = { ...state.triple.slots[0].media };
+          state.single.rawUrl = state.triple.slots[0].rawUrl;
+          document.getElementById('single-url-input').value = state.single.rawUrl;
+          updateSinglePlatformBadge(state.single.media);
+        }
+
+        // 3. シングル側の動画とチャットを再描画
+        if (state.single.media) {
+          renderSingleVideo();
+          renderSingleChat();
+        }
+      }
+
       updateLayoutUI();
     }
 
@@ -442,18 +542,26 @@
     // ==========================================
     // 動画・チャットの描画と制御 (シングル)
     // ==========================================
+    function updateSinglePlatformBadge(media) {
+      const badge = document.getElementById('single-platform-badge');
+      if (!media) {
+        badge.classList.add('hidden');
+        return;
+      }
+      badge.classList.remove('hidden', 'bg-red-600', 'bg-purple-600');
+      badge.classList.add(media.platform === 'twitch' ? 'bg-purple-600' : 'bg-red-600');
+      badge.textContent = media.platform === 'twitch' ? 'Twitch' : 'YouTube';
+    }
+
     function handleSingleSubmit(e) {
       e.preventDefault();
       const input = document.getElementById('single-url-input').value;
       const parsed = parseMediaInput(input);
       if (!parsed) return;
       state.single.media = parsed;
+      state.single.rawUrl = input.trim();
 
-      const badge = document.getElementById('single-platform-badge');
-      badge.classList.remove('hidden', 'bg-red-600', 'bg-purple-600');
-      badge.classList.add(parsed.platform === 'twitch' ? 'bg-purple-600' : 'bg-red-600');
-      badge.textContent = parsed.platform === 'twitch' ? 'Twitch' : 'YouTube';
-
+      updateSinglePlatformBadge(parsed);
       renderSingleVideo();
       renderSingleChat();
     }
@@ -619,6 +727,18 @@
       updateTripleAudioUI();
     }
 
+    function updateTripleSlotPlatformBadge(idx, media) {
+      const platBadge = document.getElementById('triple-slot-platform-' + idx);
+      if (!platBadge) return;
+      if (!media) {
+        platBadge.classList.add('hidden');
+        return;
+      }
+      platBadge.classList.remove('hidden', 'bg-red-600', 'bg-purple-600');
+      platBadge.classList.add(media.platform === 'twitch' ? 'bg-purple-600' : 'bg-red-600');
+      platBadge.textContent = media.platform === 'twitch' ? 'Twitch' : 'YouTube';
+    }
+
     function handleTripleSubmit(e, idx) {
       e.preventDefault();
       const inputVal = document.getElementById('triple-input-' + idx).value;
@@ -627,13 +747,10 @@
 
       const slot = state.triple.slots[idx];
       slot.media = parsed;
+      slot.rawUrl = inputVal.trim();
       slot.twitchPlayer = null;
 
-      const platBadge = document.getElementById('triple-slot-platform-' + idx);
-      platBadge.classList.remove('hidden', 'bg-red-600', 'bg-purple-600');
-      platBadge.classList.add(parsed.platform === 'twitch' ? 'bg-purple-600' : 'bg-red-600');
-      platBadge.textContent = parsed.platform === 'twitch' ? 'Twitch' : 'YouTube';
-
+      updateTripleSlotPlatformBadge(idx, parsed);
       renderTripleVideo(idx);
       renderTripleChat(idx);
     }
@@ -641,7 +758,7 @@
     function renderTripleVideo(idx) {
       const slot = state.triple.slots[idx];
       const container = document.getElementById('triple-video-container-' + idx);
-      if (!slot.media) return;
+      if (!slot.media || !container) return;
 
       container.innerHTML = '';
       if (slot.media.platform === 'youtube') {
@@ -695,7 +812,7 @@
       const title = document.getElementById('triple-chat-title-' + idx);
       const isDark = state.theme === 'dark';
 
-      if (!slot.media) return;
+      if (!slot.media || !container) return;
       container.innerHTML = '';
 
       if (slot.media.platform === 'youtube') {
@@ -777,7 +894,7 @@
       }
     }
 
-    // ★ ワンボタンで指定枠をメイン音声(100%)、他枠をサブ音量に設定
+    // ワンボタンで指定枠をメイン音声(100%)、他枠をサブ音量に設定
     function focusMainAudio(targetIdx) {
       state.triple.activeAudioIndex = targetIdx;
       const subVol = state.triple.subVolumeLevel;
@@ -851,7 +968,6 @@
         const isMain = state.triple.activeAudioIndex === idx;
         const effectiveVol = slot.muted ? 0 : slot.volume;
 
-        // 上部バーのワンボタン
         const topBtn = document.getElementById('btn-main-audio-' + idx);
         if (topBtn) {
           topBtn.className = isMain
@@ -860,21 +976,18 @@
           topBtn.innerHTML = (isMain ? '👑 ' : '🔈 ') + slot.label + ' をメイン';
         }
 
-        // スロット枠線
         const slotEl = document.getElementById('triple-slot-' + idx);
         if (slotEl) {
           slotEl.className = 'flex flex-col theme-panel rounded-lg border overflow-hidden min-h-0 transition-colors ' +
             (isMain ? 'border-amber-500 shadow-sm' : 'theme-border');
         }
 
-        // スロットバッジ
         const badgeEl = document.getElementById('triple-slot-badge-' + idx);
         if (badgeEl) {
           badgeEl.className = 'px-1.5 py-0.5 rounded font-bold text-[10px] shrink-0 border ' +
             (isMain ? 'bg-amber-500/15 text-amber-600 border-amber-500/40' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30');
         }
 
-        // スロット内メイン音声ボタン
         const focusBtn = document.getElementById('triple-btn-focus-' + idx);
         if (focusBtn) {
           focusBtn.className = 'px-2 py-0.5 rounded border text-[10px] font-medium transition-all flex items-center gap-1 ' +
@@ -882,7 +995,6 @@
           focusBtn.textContent = isMain ? '👑 メイン音声中' : '🔊 メインにする';
         }
 
-        // スライダー・ミュートアイコン・数値
         const slider = document.getElementById('triple-slider-vol-' + idx);
         if (slider) slider.value = effectiveVol;
 
