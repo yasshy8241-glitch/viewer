@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YT Vertical Studio</title>
+  <title>Stream Vertical Studio (YouTube & Twitch)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    };
+  </script>
   <!-- React & ReactDOM (UMD) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <!-- Babel (ブラウザ内JSX変換) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Twitch Embed API (マルチ視聴時の音量制御用) -->
+  <script src="https://player.twitch.tv/js/embed/v1.js"></script>
   <style>
     body {
-      background-color: #09090b;
-      color: #f4f4f5;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -25,37 +30,66 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #18181b;
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: #3f3f46;
+      background: #94a3b8;
       border-radius: 3px;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #52525b;
+    .dark ::-webkit-scrollbar-thumb {
+      background: #3f3f46;
     }
   </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200">
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // YouTube URLまたは文字列から11桁の動画IDを抽出
-    const extractVideoId = (input) => {
-      if (!input) return '';
+    const THEME_STORAGE_KEY = 'stream_vertical_studio_theme';
+
+    // ==========================================
+    // URL解析ヘルパー: YouTube と Twitch を自動判別
+    // ==========================================
+    const parseMediaInput = (input) => {
+      if (!input || !input.trim()) return null;
       const trimmed = input.trim();
-      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-        return trimmed;
+
+      // 1. Twitch URL 判定
+      if (/twitch\.tv/i.test(trimmed)) {
+        // Twitch アーカイブ動画 (例: twitch.tv/videos/123456789)
+        const videoMatch = trimmed.match(/twitch\.tv\/(?:[a-zA-Z0-9_]+\/v(?:ideo)?\/|videos\/)(\d+)/i);
+        if (videoMatch) {
+          return { platform: 'twitch', type: 'video', id: videoMatch[1], channel: null };
+        }
+        // Twitch ライブチャンネル (例: twitch.tv/fps_shaka)
+        const channelMatch = trimmed.match(/twitch\.tv\/([a-zA-Z0-9_]+)/i);
+        if (channelMatch) {
+          return { platform: 'twitch', type: 'channel', id: channelMatch[1].toLowerCase(), channel: channelMatch[1].toLowerCase() };
+        }
       }
-      const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
-      const match = trimmed.match(regex);
-      return match ? match[1] : trimmed;
+
+      // 2. YouTube URL 判定 (watch?v=, youtu.be/, live/, shorts/, embed/)
+      const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+      const ytMatch = trimmed.match(ytRegex);
+      if (ytMatch) {
+        return { platform: 'youtube', type: 'video', id: ytMatch[1] };
+      }
+
+      // 3. ID直接入力時の判定 (11桁ならYouTube、それ以外の英数字ならTwitchチャンネルとして扱う)
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+        return { platform: 'youtube', type: 'video', id: trimmed };
+      }
+      if (/^[a-zA-Z0-9_]{3,25}$/.test(trimmed)) {
+        return { platform: 'twitch', type: 'channel', id: trimmed.toLowerCase(), channel: trimmed.toLowerCase() };
+      }
+
+      return null;
     };
 
-    // YouTube IFrame PlayerへpostMessageで音量・ミュート命令を送信するヘルパー
-    const sendPlayerCommand = (iframeEl, func, args = []) => {
+    // YouTube IFrame PlayerへpostMessageで音量・ミュート命令を送信
+    const sendYouTubeCommand = (iframeEl, func, args = []) => {
       if (!iframeEl || !iframeEl.contentWindow) return;
       iframeEl.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func, args }),
@@ -64,594 +98,79 @@
     };
 
     // ==========================================
-    // コンポーネント: YouTube公式ライブチャットパネル
+    // コンポーネント: 動画プレイヤー (YouTube & Twitch 両対応 + 音量制御)
     // ==========================================
-    const LiveChatPanel = ({ videoId, embedDomain, onCloseChat }) => {
-      const realChatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${embedDomain}&dark_theme=1`;
-      const popoutChatUrl = `https://www.youtube.com/live_chat?is_popout=1&v=${videoId}`;
+    const UniversalVideoPlayer = ({ media, embedDomain, volume = 100, muted = false }) => {
+      const ytIframeRef = useRef(null);
+      const twitchContainerRef = useRef(null);
+      const twitchPlayerRef = useRef(null);
 
-      return (
-        <div className="flex flex-col h-full w-full bg-zinc-900 border-zinc-800 select-none overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-950 border-b border-zinc-800 shrink-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-              <span className="text-xs font-semibold text-zinc-200 truncate">
-                ライブチャット
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <a
-                href={popoutChatUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-1.5 py-0.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors text-xs"
-                title="別ウィンドウでチャットを開く"
-              >
-                ↗ ポップアウト
-              </a>
-              {onCloseChat && (
-                <button
-                  onClick={onCloseChat}
-                  className="p-1 text-zinc-400 hover:text-rose-400 hover:bg-zinc-800 rounded transition-colors text-xs"
-                  title="チャット欄を閉じる"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col bg-zinc-950 relative overflow-hidden">
-            {videoId ? (
-              <iframe
-                src={realChatUrl}
-                title="YouTube Live Chat"
-                className="w-full flex-1 border-0"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-xs text-zinc-500">
-                動画URLを入力するとチャットが表示されます
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    };
-
-    // ==========================================
-    // メインアプリケーション
-    // ==========================================
-    const App = () => {
-      // モード: 'single' (1画面動的比率) | 'triple' (縦3画面同時視聴)
-      const [viewMode, setViewMode] = useState('single');
-
-      // レイアウト比率モード: 'auto' | 'portrait' | 'landscape'
-      const [orientationLock, setOrientationLock] = useState('auto');
-      const [isWindowPortrait, setIsWindowPortrait] = useState(() => window.innerHeight >= window.innerWidth);
-      const [embedDomain] = useState(() => window.location.hostname || 'localhost');
-
-      // シングルモード用ステート
-      const [singleUrlInput, setSingleUrlInput] = useState('');
-      const [singleVideoId, setSingleVideoId] = useState('');
-      const [singleShowChat, setSingleShowChat] = useState(true);
-      const [videoRatioHeight, setVideoRatioHeight] = useState(42);
-
-      // 3画面マルチモード用ステート
-      const [tripleSlots, setTripleSlots] = useState([
-        { id: 1, videoId: '', urlInput: '', showChat: true, label: 'SLOT 1', volume: 100, muted: false },
-        { id: 2, videoId: '', urlInput: '', showChat: true, label: 'SLOT 2', volume: 15, muted: false },
-        { id: 3, videoId: '', urlInput: '', showChat: true, label: 'SLOT 3', volume: 15, muted: false },
-      ]);
-      // 現在メイン音声になっているスロットのインデックス (0, 1, 2, または null)
-      const [activeAudioIndex, setActiveAudioIndex] = useState(0);
-      // メイン以外のサブ枠に適用する音量 (デフォルト15%)
-      const [subVolumeLevel, setSubVolumeLevel] = useState(15);
-
-      // 3画面それぞれのiframe要素への参照
-      const tripleIframeRefs = useRef([null, null, null]);
-
-      // ヘッダー開閉ステート
-      const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
-
-      // ウィンドウリサイズ監視
-      useEffect(() => {
-        const handleResize = () => {
-          setIsWindowPortrait(window.innerHeight >= window.innerWidth);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-      }, []);
-
-      const isPortraitLayout =
-        orientationLock === 'auto'
-          ? isWindowPortrait
-          : orientationLock === 'portrait';
-
-      // シングルURL反映
-      const handleSingleUrlSubmit = (e) => {
-        e.preventDefault();
-        const extracted = extractVideoId(singleUrlInput);
-        if (extracted) setSingleVideoId(extracted);
-      };
-
-      // トリプルスロットの更新
-      const updateTripleSlot = (index, updates) => {
-        setTripleSlots((prev) =>
-          prev.map((slot, i) => (i === index ? { ...slot, ...updates } : slot))
-        );
-      };
-
-      // 特定のスロットの音量・ミュートをYouTubeプレイヤーへ即時反映
-      const applySlotAudio = (index, volume, muted) => {
-        const iframe = tripleIframeRefs.current[index];
-        if (!iframe) return;
-        if (muted || volume === 0) {
-          sendPlayerCommand(iframe, 'mute');
-          sendPlayerCommand(iframe, 'setVolume', [0]);
+      // YouTube用の音量反映関数
+      const applyYouTubeAudio = (vol, isMuted) => {
+        if (!ytIframeRef.current) return;
+        if (isMuted || vol === 0) {
+          sendYouTubeCommand(ytIframeRef.current, 'mute');
+          sendYouTubeCommand(ytIframeRef.current, 'setVolume', [0]);
         } else {
-          sendPlayerCommand(iframe, 'unMute');
-          sendPlayerCommand(iframe, 'setVolume', [volume]);
+          sendYouTubeCommand(ytIframeRef.current, 'unMute');
+          sendYouTubeCommand(ytIframeRef.current, 'setVolume', [vol]);
         }
       };
 
-      // ★ ワンボタンで指定スロットを「メイン音声(100%)」にし、他を「サブ音量」に自動調整
-      const handleFocusMainAudio = (targetIndex, customSubVol = subVolumeLevel) => {
-        setActiveAudioIndex(targetIndex);
-        setTripleSlots((prev) =>
-          prev.map((slot, idx) => {
-            const isMain = idx === targetIndex;
-            const nextVol = isMain ? 100 : customSubVol;
-            const nextMuted = customSubVol === 0 && !isMain;
-            applySlotAudio(idx, nextVol, nextMuted);
-            return { ...slot, volume: nextVol, muted: nextMuted };
-          })
-        );
-      };
-
-      // ★ サブ音量の設定値を変更した際、現在のメイン枠を維持したまま他の枠へ即時反映
-      const handleChangeSubVolumeLevel = (newSubVol) => {
-        setSubVolumeLevel(newSubVol);
-        if (activeAudioIndex !== null) {
-          handleFocusMainAudio(activeAudioIndex, newSubVol);
+      // Twitch用の音量反映関数 (Twitch APIは 0.0 〜 1.0)
+      const applyTwitchAudio = (vol, isMuted) => {
+        const player = twitchPlayerRef.current;
+        if (!player) return;
+        try {
+          if (isMuted || vol === 0) {
+            player.setMuted(true);
+            player.setVolume(0);
+          } else {
+            player.setMuted(false);
+            player.setVolume(Math.max(0, Math.min(1, vol / 100)));
+          }
+        } catch (err) {
+          // プレイヤー準備前のエラーを無視
         }
       };
 
-      // ★ 全枠を均等音量にする、または全ミュートにする一括調整
-      const handleSetAllVolumes = (vol, muteAll = false) => {
-        setActiveAudioIndex(null);
-        setTripleSlots((prev) =>
-          prev.map((slot, idx) => {
-            applySlotAudio(idx, vol, muteAll);
-            return { ...slot, volume: vol, muted: muteAll };
-          })
-        );
-      };
+      // Twitch Player インスタンスの生成と切り替え
+      useEffect(() => {
+        if (!media || media.platform !== 'twitch') {
+          twitchPlayerRef.current = null;
+          return;
+        }
+        if (!twitchContainerRef.current) return;
 
-      // 個別スライダーで音量を変更したとき
-      const handleIndividualVolumeChange = (index, newVol) => {
-        setActiveAudioIndex(null);
-        const isMuted = newVol === 0;
-        applySlotAudio(index, newVol, isMuted);
-        updateTripleSlot(index, { volume: newVol, muted: isMuted });
-      };
+        // 既存のDOMをクリア
+        twitchContainerRef.current.innerHTML = '';
+        twitchPlayerRef.current = null;
 
-      // 個別ミュートボタンを押したとき
-      const handleIndividualMuteToggle = (index) => {
-        setActiveAudioIndex(null);
-        const slot = tripleSlots[index];
-        const nextMuted = !slot.muted;
-        const targetVol = nextMuted ? 0 : (slot.volume === 0 ? 50 : slot.volume);
-        applySlotAudio(index, targetVol, nextMuted);
-        updateTripleSlot(index, { muted: nextMuted, volume: targetVol });
-      };
+        if (window.Twitch && window.Twitch.Player) {
+          const options = {
+            width: '100%',
+            height: '100%',
+            parent: [embedDomain],
+            autoplay: true,
+            muted: muted || volume === 0,
+          };
+          if (media.type === 'video') {
+            options.video = media.id;
+          } else {
+            options.channel = media.id;
+          }
 
-      return (
-        <div className="flex flex-col h-screen w-screen bg-zinc-950 text-zinc-100 overflow-hidden">
-          {/* トップコントロールバー */}
-          <header className="bg-zinc-900/95 border-b border-zinc-800 px-3 py-2 shrink-0 z-20">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center font-bold text-xs shadow">
-                  ▶
-                </div>
-                <span className="font-bold text-sm tracking-tight text-white">YT Vertical Studio</span>
+          const player = new window.Twitch.Player(twitchContainerRef.current, options);
+          twitchPlayerRef.current = player;
 
-                {viewMode === 'single' ? (
-                  <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-medium ${
-                    isPortraitLayout
-                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-                      : 'bg-sky-500/15 text-sky-300 border-sky-500/40'
-                  }`}>
-                    {isPortraitLayout ? '📱 縦長 (動画下チャット)' : '🖥️ 横長 (動画横チャット)'}
-                  </span>
-                ) : (
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full border bg-purple-500/15 text-purple-300 border-purple-500/40 font-medium">
-                    🎞️ 縦3画面マルチ
-                  </span>
-                )}
-              </div>
+          player.addEventListener(window.Twitch.Player.READY, () => {
+            applyTwitchAudio(volume, muted);
+          });
+        }
+      }, [media?.platform, media?.type, media?.id, embedDomain]);
 
-              <div className="flex flex-wrap items-center gap-2">
-                {/* 視聴モード切替 */}
-                <div className="flex items-center bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 text-xs">
-                  <button
-                    onClick={() => setViewMode('single')}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                      viewMode === 'single' ? 'bg-indigo-600 text-white shadow' : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    シングル視聴
-                  </button>
-                  <button
-                    onClick={() => setViewMode('triple')}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                      viewMode === 'triple' ? 'bg-indigo-600 text-white shadow' : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    縦3画面マルチ
-                  </button>
-                </div>
-
-                {/* シングル時の画面比率固定スイッチ */}
-                {viewMode === 'single' && (
-                  <div className="flex items-center bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 text-xs">
-                    <button
-                      onClick={() => setOrientationLock('auto')}
-                      className={`px-2 py-1 rounded-md transition-colors ${
-                        orientationLock === 'auto' ? 'bg-zinc-800 text-white font-medium' : 'text-zinc-400 hover:text-zinc-200'
-                      }`}
-                    >
-                      自動検知
-                    </button>
-                    <button
-                      onClick={() => setOrientationLock('portrait')}
-                      className={`px-2 py-1 rounded-md transition-colors ${
-                        orientationLock === 'portrait' ? 'bg-zinc-800 text-emerald-300 font-medium' : 'text-zinc-400 hover:text-zinc-200'
-                      }`}
-                    >
-                      縦長固定
-                    </button>
-                    <button
-                      onClick={() => setOrientationLock('landscape')}
-                      className={`px-2 py-1 rounded-md transition-colors ${
-                        orientationLock === 'landscape' ? 'bg-zinc-800 text-sky-300 font-medium' : 'text-zinc-400 hover:text-zinc-200'
-                      }`}
-                    >
-                      横長固定
-                    </button>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setIsHeaderCollapsed(!isHeaderCollapsed)}
-                  className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs border border-zinc-700"
-                >
-                  {isHeaderCollapsed ? '▼ 操作バーを開く' : '▲ 最小化'}
-                </button>
-              </div>
-            </div>
-
-            {/* シングルモード用 URL入力＆表示調整バー */}
-            {!isHeaderCollapsed && viewMode === 'single' && (
-              <div className="mt-2 pt-2 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <form onSubmit={handleSingleUrlSubmit} className="flex-1 min-w-[240px] flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={singleUrlInput}
-                    onChange={(e) => setSingleUrlInput(e.target.value)}
-                    placeholder="YouTubeのURL（ライブ・通常動画・ショート）を貼り付けて「反映」"
-                    className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shrink-0"
-                  >
-                    反映
-                  </button>
-                </form>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {isPortraitLayout && singleShowChat && (
-                    <div className="flex items-center gap-1.5 bg-zinc-950 px-2.5 py-1 rounded-lg border border-zinc-800">
-                      <span className="text-[11px] text-zinc-400">動画の高さ:</span>
-                      <input
-                        type="range"
-                        min="25"
-                        max="75"
-                        value={videoRatioHeight}
-                        onChange={(e) => setVideoRatioHeight(Number(e.target.value))}
-                        className="w-20 accent-indigo-500 cursor-pointer"
-                      />
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => setSingleShowChat(!singleShowChat)}
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                      singleShowChat
-                        ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    {singleShowChat ? '💬 チャット表示中' : '💬 チャット非表示 (全画面動画)'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 縦3画面マルチモード用 一括音声バランサーバー */}
-            {!isHeaderCollapsed && viewMode === 'triple' && (
-              <div className="mt-2 pt-2 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-zinc-400 font-medium mr-1">🔊 ワンボタンメイン音声切替:</span>
-                  {tripleSlots.map((slot, idx) => (
-                    <button
-                      key={slot.id}
-                      onClick={() => handleFocusMainAudio(idx)}
-                      className={`px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1 ${
-                        activeAudioIndex === idx
-                          ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm'
-                          : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
-                      }`}
-                    >
-                      <span>{activeAudioIndex === idx ? '👑' : '🔈'}</span>
-                      <span>{slot.label} をメイン</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* サブ枠（メイン以外）の音量プリセット */}
-                  <div className="flex items-center bg-zinc-950 px-2 py-0.5 rounded-lg border border-zinc-800 gap-1">
-                    <span className="text-[11px] text-zinc-400">他枠の音量:</span>
-                    {[
-                      { label: 'ミュート(0%)', val: 0 },
-                      { label: '小(15%)', val: 15 },
-                      { label: '中(30%)', val: 30 },
-                    ].map((opt) => (
-                      <button
-                        key={opt.val}
-                        onClick={() => handleChangeSubVolumeLevel(opt.val)}
-                        className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
-                          subVolumeLevel === opt.val
-                            ? 'bg-indigo-600 text-white font-medium'
-                            : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* 全枠一括ボタン */}
-                  <button
-                    onClick={() => handleSetAllVolumes(50, false)}
-                    className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-md border border-zinc-700 text-[11px] transition-colors"
-                  >
-                    すべて均等(50%)
-                  </button>
-                  <button
-                    onClick={() => handleSetAllVolumes(0, true)}
-                    className="px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/70 text-rose-300 rounded-md border border-rose-800/60 text-[11px] transition-colors"
-                  >
-                    🔇 全ミュート
-                  </button>
-                </div>
-              </div>
-            )}
-          </header>
-
-          {/* メインビューポート */}
-          <main className="flex-1 overflow-hidden relative">
-            {viewMode === 'single' ? (
-              // ==========================================
-              // 1. シングル視聴モード
-              // ==========================================
-              <div className={`w-full h-full flex ${isPortraitLayout ? 'flex-col' : 'flex-row'} overflow-hidden`}>
-                <div
-                  style={
-                    isPortraitLayout && singleShowChat
-                      ? { height: `${videoRatioHeight}%` }
-                      : undefined
-                  }
-                  className={`${
-                    !singleShowChat
-                      ? 'w-full h-full'
-                      : isPortraitLayout
-                      ? 'w-full shrink-0 border-b border-zinc-800'
-                      : 'flex-1 h-full border-r border-zinc-800'
-                  } bg-black relative flex items-center justify-center`}
-                >
-                  {singleVideoId ? (
-                    <iframe
-                      key={singleVideoId}
-                      src={`https://www.youtube.com/embed/${singleVideoId}?autoplay=1&rel=0&playsinline=1&enablejsapi=1`}
-                      title="YouTube video player"
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="text-center p-6 text-zinc-500 text-sm space-y-2">
-                      <p className="text-base text-zinc-300 font-medium">YouTubeのURLを入力してください</p>
-                      <p className="text-xs">ライブ配信・通常の動画・ショート動画すべてに対応しています</p>
-                    </div>
-                  )}
-                </div>
-
-                {singleShowChat && (
-                  <div
-                    className={`${
-                      isPortraitLayout
-                        ? 'flex-1 w-full min-h-0'
-                        : 'w-80 lg:w-96 h-full shrink-0'
-                    } overflow-hidden`}
-                  >
-                    <LiveChatPanel
-                      videoId={singleVideoId}
-                      embedDomain={embedDomain}
-                      onCloseChat={() => setSingleShowChat(false)}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              // ==========================================
-              // 2. 縦3画面マルチモード (ワンボタン＆個別音声調整対応)
-              // ==========================================
-              <div className="w-full h-full grid grid-rows-3 gap-1 p-1 bg-zinc-950 overflow-hidden">
-                {tripleSlots.map((slot, index) => {
-                  const isMainAudio = activeAudioIndex === index;
-                  return (
-                    <div
-                      key={slot.id}
-                      className={`flex flex-col bg-zinc-900 rounded-lg border overflow-hidden min-h-0 transition-colors ${
-                        isMainAudio ? 'border-amber-500/60' : 'border-zinc-800'
-                      }`}
-                    >
-                      {/* 各スロットのコントロールバー */}
-                      {!isHeaderCollapsed && (
-                        <div className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1 bg-zinc-950 border-b border-zinc-800 text-[11px] shrink-0">
-                          {/* 左側: スロット番号＆URL入力 */}
-                          <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
-                            <span
-                              className={`px-1.5 py-0.5 rounded font-bold text-[10px] shrink-0 border ${
-                                isMainAudio
-                                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
-                                  : 'bg-indigo-600/30 text-indigo-300 border-indigo-500/40'
-                              }`}
-                            >
-                              {slot.label}
-                            </span>
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                const extracted = extractVideoId(slot.urlInput);
-                                if (extracted) updateTripleSlot(index, { videoId: extracted });
-                              }}
-                              className="flex items-center gap-1 flex-1 max-w-md"
-                            >
-                              <input
-                                type="text"
-                                value={slot.urlInput}
-                                onChange={(e) => updateTripleSlot(index, { urlInput: e.target.value })}
-                                placeholder="YouTube URL を入力して「反映」"
-                                className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 text-[11px] text-zinc-200 focus:outline-none focus:border-indigo-500"
-                              />
-                              <button
-                                type="submit"
-                                className="px-2.5 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-medium transition-colors shrink-0"
-                              >
-                                反映
-                              </button>
-                            </form>
-                          </div>
-
-                          {/* 右側: ワンボタンメイン音声化 ＆ 個別音量スライダー ＆ チャットON/OFF */}
-                          <div className="flex items-center gap-2 shrink-0">
-                            {/* ワンボタンでこの枠をメイン音声にするボタン */}
-                            <button
-                              onClick={() => handleFocusMainAudio(index)}
-                              className={`px-2 py-0.5 rounded border text-[10px] font-medium transition-all flex items-center gap-1 ${
-                                isMainAudio
-                                  ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                                  : 'bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-zinc-300'
-                              }`}
-                              title="この枠の音量を100%にし、他の2枠をサブ音量に下げます"
-                            >
-                              <span>{isMainAudio ? '👑 メイン音声中' : '🔊 メインにする'}</span>
-                            </button>
-
-                            {/* 個別音量調整コントロール */}
-                            <div className="flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
-                              <button
-                                onClick={() => handleIndividualMuteToggle(index)}
-                                className="text-xs hover:text-white"
-                                title="個別ミュート切替"
-                              >
-                                {slot.muted || slot.volume === 0 ? '🔇' : slot.volume < 40 ? '🔉' : '🔊'}
-                              </button>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={slot.muted ? 0 : slot.volume}
-                                onChange={(e) => handleIndividualVolumeChange(index, Number(e.target.value))}
-                                className="w-16 accent-amber-400 cursor-pointer"
-                                title={`個別音量: ${slot.muted ? 0 : slot.volume}%`}
-                              />
-                              <span className="text-[10px] text-zinc-400 w-7 text-right">
-                                {slot.muted ? '0%' : `${slot.volume}%`}
-                              </span>
-                            </div>
-
-                            {/* 横チャット表示切替 */}
-                            <button
-                              onClick={() => updateTripleSlot(index, { showChat: !slot.showChat })}
-                              className={`px-2 py-0.5 rounded border text-[10px] font-medium transition-colors ${
-                                slot.showChat
-                                  ? 'bg-emerald-950/60 border-emerald-700/60 text-emerald-300'
-                                  : 'bg-zinc-900 border-zinc-800 text-zinc-400'
-                              }`}
-                            >
-                              {slot.showChat ? '横チャットON' : 'チャットOFF'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* スロット本体: 左に動画、右横にチャット */}
-                      <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
-                        <div className="flex-1 h-full bg-black relative flex items-center justify-center">
-                          {slot.videoId ? (
-                            <iframe
-                              ref={(el) => (tripleIframeRefs.current[index] = el)}
-                              key={slot.videoId}
-                              src={`https://www.youtube.com/embed/${slot.videoId}?autoplay=1&rel=0&playsinline=1&enablejsapi=1`}
-                              title={`Slot ${slot.id} Player`}
-                              className="w-full h-full border-0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                              referrerPolicy="strict-origin-when-cross-origin"
-                              allowFullScreen
-                              onLoad={() => {
-                                // 動画読み込み完了時に現在の設定音量を適用
-                                setTimeout(() => {
-                                  applySlotAudio(index, slot.volume, slot.muted);
-                                }, 800);
-                              }}
-                            />
-                          ) : (
-                            <div className="text-zinc-600 text-xs">
-                              {slot.label}: 上部の入力欄にYouTubeのURLを貼り付けて「反映」を押してください
-                            </div>
-                          )}
-                        </div>
-
-                        {slot.showChat && (
-                          <div className="w-60 sm:w-72 md:w-80 h-full border-l border-zinc-800 shrink-0 overflow-hidden">
-                            <LiveChatPanel
-                              videoId={slot.videoId}
-                              embedDomain={embedDomain}
-                              onCloseChat={() => updateTripleSlot(index, { showChat: false })}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </main>
-        </div>
-      );
-    };
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
-</body>
-</html>
+      // 音量・ミュート状態が変化した際にリアルタイム反映
+      useEffect(() => {
+        if (!media) return;
+        if (media.platform === 'youtube') {
+          applyYouTubeAudio(volume, muted);
