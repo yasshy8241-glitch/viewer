@@ -13,22 +13,20 @@
   <style>
     /* ライトモード: 白基調 ＋ グレー＆黒UI ＋ ポイントで緑＆オレンジ */
     :root {
-      --bg-app: #f4f4f5;       /* ベース背景: 明るいグレー */
-      --bg-header: #ffffff;    /* ヘッダー: 純白 */
-      --bg-panel: #ffffff;     /* パネル/カード: 純白 */
-      --bg-sub: #f4f4f5;       /* サブ領域/バー: 淡いグレー */
-      --bg-input: #ffffff;     /* 入力欄: 純白 */
-      --text-main: #09090b;    /* メイン文字: 深い黒 */
-      --text-sub: #3f3f46;     /* サブ文字: ダークグレー */
-      --text-muted: #71717a;   /* 補足文字: ミディアムグレー */
-      --border-col: #e4e4e7;   /* 境界線: ライトグレー */
+      --bg-app: #f4f4f5;
+      --bg-header: #ffffff;
+      --bg-panel: #ffffff;
+      --bg-sub: #f4f4f5;
+      --bg-input: #ffffff;
+      --text-main: #09090b;
+      --text-sub: #3f3f46;
+      --text-muted: #71717a;
+      --border-col: #e4e4e7;
 
-      /* モノトーン主役ボタン (ライト時は黒背景に白文字) */
       --btn-mono-bg: #18181b;
       --btn-mono-hover: #27272a;
       --btn-mono-text: #ffffff;
 
-      /* ポイントカラー: 緑 & オレンジ */
       --accent-green: #10b981;
       --accent-green-hover: #059669;
       --accent-orange: #f97316;
@@ -37,22 +35,20 @@
 
     /* ダークモード: 黒基調 ＋ グレー＆白UI ＋ ポイントで緑＆オレンジ */
     html.dark {
-      --bg-app: #09090b;       /* ベース背景: 深い黒 */
-      --bg-header: #121214;    /* ヘッダー: 漆黒に近いダークグレー */
-      --bg-panel: #18181b;     /* パネル/カード: ダークグレー */
-      --bg-sub: #27272a;       /* サブ領域/バー: ミディアムダークグレー */
-      --bg-input: #09090b;     /* 入力欄: 深い黒 */
-      --text-main: #fafafa;    /* メイン文字: 純白に近い白 */
-      --text-sub: #d4d4d8;     /* サブ文字: ライトグレー */
-      --text-muted: #a1a1aa;   /* 補足文字: グレー */
-      --border-col: #2e2e32;   /* 境界線: ダークグレー */
+      --bg-app: #09090b;
+      --bg-header: #121214;
+      --bg-panel: #18181b;
+      --bg-sub: #27272a;
+      --bg-input: #09090b;
+      --text-main: #fafafa;
+      --text-sub: #d4d4d8;
+      --text-muted: #a1a1aa;
+      --border-col: #2e2e32;
 
-      /* モノトーン主役ボタン (ダーク時は白背景に黒文字) */
       --btn-mono-bg: #fafafa;
       --btn-mono-hover: #e4e4e7;
       --btn-mono-text: #09090b;
 
-      /* ポイントカラー: 緑 & オレンジ */
       --accent-green: #10b981;
       --accent-green-hover: #34d399;
       --accent-orange: #f97316;
@@ -79,7 +75,6 @@
     .theme-text-sub { color: var(--text-sub); }
     .theme-text-muted { color: var(--text-muted); }
 
-    /* モノトーン主役ボタン（ライト：黒 / ダーク：白） */
     .btn-mono {
       background-color: var(--btn-mono-bg);
       color: var(--btn-mono-text);
@@ -89,7 +84,6 @@
       background-color: var(--btn-mono-hover);
     }
 
-    /* ポイントカラー：緑ボタン＆バッジ */
     .btn-green {
       background-color: var(--accent-green);
       color: #ffffff;
@@ -109,7 +103,6 @@
       border-color: rgba(16, 185, 129, 0.4);
     }
 
-    /* ポイントカラー：オレンジボタン＆バッジ */
     .btn-orange {
       background-color: var(--accent-orange);
       color: #ffffff;
@@ -129,9 +122,14 @@
       border-color: rgba(249, 115, 22, 0.4);
     }
 
-    /* スライダーのアクセント */
     .slider-green { accent-color: #10b981; }
     .slider-orange { accent-color: #f97316; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .live-dot { animation: pulse-dot 1.4s infinite ease-in-out; }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -293,7 +291,7 @@
   <main id="main-viewport" class="flex-1 overflow-hidden relative">
     <!-- 1. シングル視聴ビュー -->
     <div id="single-view" class="w-full h-full flex flex-col overflow-hidden">
-      <div id="single-video-pane" style="height: 42%;" class="w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150">
+      <div id="single-video-pane" style="height: 42%;" class="w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center overflow-hidden">
         <div id="single-video-container" class="w-full h-full flex items-center justify-center overflow-hidden">
           <div class="text-center p-6 text-zinc-400 text-xs space-y-3 select-none">
             <p class="text-sm text-zinc-200 font-medium">URLを入力するか、下のボタンから検索・プレイリスト・履歴を開いてください</p>
@@ -317,9 +315,13 @@
         <div class="flex items-center justify-between px-3 py-1 theme-sub border-b shrink-0">
           <div class="flex items-center gap-2 min-w-0">
             <span id="single-chat-dot" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-            <span id="single-chat-title" class="text-xs font-semibold theme-text truncate">ライブチャット</span>
+            <span id="single-chat-title" class="text-xs font-semibold theme-text truncate">ライブチャット / コメント</span>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
+            <!-- チャットとコメントの手動切替ボタン（配信アーカイブ等で便利） -->
+            <button id="btn-single-switch-chatmode" onclick="switchSingleChatOrComments()" class="hidden px-2 py-0.5 rounded border theme-panel text-[11px] theme-text-sub hover:opacity-80">
+              🔄 コメント欄に切替
+            </button>
             <a id="single-chat-popout" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-1.5 py-0.5 theme-text-sub hover:text-emerald-500 rounded text-xs">
               ↗ ポップアウト
             </a>
@@ -329,7 +331,7 @@
           </div>
         </div>
         <div id="single-chat-container" class="flex-1 flex flex-col relative overflow-hidden items-center justify-center text-xs theme-text-muted">
-          動画・配信を選択するとチャットが表示されます
+          動画・配信を選択するとチャットまたはコメントが表示されます
         </div>
       </div>
     </div>
@@ -391,13 +393,13 @@
             </button>
           </div>
 
-          <!-- YouTube検索用 絞り込みフィルタ (すべて / ライブ / ショート) -->
+          <!-- YouTube検索用 絞り込みフィルタ (すべて / ライブ / 動画 / ショート) -->
           <div id="yt-filter-group" class="flex items-center theme-sub p-0.5 rounded-lg border text-xs gap-1">
             <button id="btn-filter-all" onclick="setYtSearchFilter('all')" class="px-2 py-0.5 rounded btn-mono font-medium">
               すべて
             </button>
             <button id="btn-filter-live" onclick="setYtSearchFilter('live')" class="px-2 py-0.5 rounded theme-text-sub">
-              🟠 ライブのみ
+              🟠 LIVE配信のみ
             </button>
             <button id="btn-filter-shorts" onclick="setYtSearchFilter('shorts')" class="px-2 py-0.5 rounded theme-text-sub">
               📱 ショート
@@ -410,7 +412,7 @@
           <input
             id="search-query-input"
             type="text"
-            placeholder="キーワード（例: シャドバ、配信者名）またはURL（/shorts/対応）を入力して検索..."
+            placeholder="キーワード（例: シャドバ、配信者名）またはURL（通常/ライブ/ショート）を入力して検索..."
             class="flex-1 theme-input border rounded-lg px-3 py-1.5 text-xs"
           />
           <button type="submit" class="px-4 py-1.5 btn-green rounded-lg text-xs font-bold shrink-0 shadow-sm">
@@ -481,9 +483,9 @@
       <!-- 設定タブ用パネル -->
       <div id="settings-panel" class="hidden flex-1 min-h-0 overflow-y-auto p-4 space-y-4 text-xs">
         <div class="theme-sub border theme-border rounded-xl p-4 space-y-3">
-          <h3 class="font-bold text-sm text-emerald-500">1. YouTube Data API v3 キー設定（高速・確実な検索＆ショート動画コメント取得用）</h3>
+          <h3 class="font-bold text-sm text-emerald-500">1. YouTube Data API v3 キー設定（高速・確実な検索＆ショート/LIVE判定・コメント取得用）</h3>
           <p class="theme-text-sub leading-relaxed">
-            Google Cloudで発行したAPIキー（<code>AIzaSy...</code>）を設定すると、公式サーバーから直接高速で検索・プレイリスト展開・<strong>ショート動画のコメント一覧表示</strong>ができます。
+            Google Cloudで発行したAPIキー（<code>AIzaSy...</code>）を設定すると、公式サーバーから直接高速で検索・プレイリスト展開・<strong>LIVE配信/動画/ショート動画の正確な判別＆コメント一覧表示</strong>ができます。
           </p>
           <div class="flex flex-wrap items-center gap-2">
             <input
@@ -537,7 +539,7 @@
     const MULTI_COUNT_STORAGE = 'stream_vertical_studio_multi_count';
     const CARD_LAYOUT_STORAGE = 'stream_vertical_studio_card_layout';
     const OAUTH_SESSION_STORAGE = 'stream_vertical_studio_oauth_session';
-    const YT_CACHE_STORAGE = 'stream_vertical_studio_yt_library_cache';
+    const YT_CACHE_STORAGE = 'stream_vertical_studio_yt_library_cache_v2';
     const embedDomain = window.location.hostname || 'localhost';
 
     const state = {
@@ -550,9 +552,10 @@
         media: null,
         rawUrl: '',
         showChat: true,
+        forceChatMode: null,  // null(自動: LIVEならチャット, 動画/ショートならコメント) | 'chat' | 'comments'
         videoHeight: 42,      // 縦長レイアウト時の動画高さ(%)
         videoWidth: 72,       // 横長レイアウト時の動画幅(%)
-        shortVideoWidth: 50,  // ショート動画＋コメント横並び時の動画幅(%)
+        shortVideoWidth: 48,  // ショート動画＋コメント横並び時の動画幅(%)
         twitchPlayer: null
       },
       multi: {
@@ -593,7 +596,7 @@
     };
 
     // ==========================================
-    // ユーティリティ ＆ URL解析 (ショート動画 /shorts/ 自動判別対応)
+    // ユーティリティ ＆ URL解析 ＆ 動画尺フォーマット
     // ==========================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
@@ -623,7 +626,29 @@
 
     function detectIsShortText(text) {
       if (!text) return false;
-      return /#shorts?\b|youtube\.com\/shorts\//i.test(text);
+      return /#shorts?\b|youtube\.com\/shorts\/|ショート動画/i.test(text);
+    }
+
+    // ISO 8601 duration (PT1H2M30S) を秒数に変換
+    function parseIsoDurationSeconds(isoStr) {
+      if (!isoStr) return 0;
+      const m = isoStr.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!m) return 0;
+      const hours = parseInt(m[1] || '0', 10);
+      const mins = parseInt(m[2] || '0', 10);
+      const secs = parseInt(m[3] || '0', 10);
+      return hours * 3600 + mins * 60 + secs;
+    }
+
+    // 秒数を "12:34" や "1:05:20" の見やすい再生時間表記に変換
+    function formatDurationSeconds(totalSec) {
+      if (!totalSec || totalSec <= 0) return '';
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = Math.floor(totalSec % 60);
+      const pad = (n) => String(n).padStart(2, '0');
+      if (h > 0) return `${h}:${pad(m)}:${pad(s)}`;
+      return `${m}:${pad(s)}`;
     }
 
     function parseMediaInput(input) {
@@ -633,43 +658,47 @@
       if (/twitch\.tv/i.test(trimmed)) {
         const videoMatch = trimmed.match(/twitch\.tv\/(?:[a-zA-Z0-9_]+\/v(?:ideo)?\/|videos\/)(\d+)/i);
         if (videoMatch) {
-          return { platform: 'twitch', type: 'video', id: videoMatch[1], channel: null, isShort: false };
+          return { platform: 'twitch', type: 'video', id: videoMatch[1], channel: null, isShort: false, isLive: false };
         }
         const channelMatch = trimmed.match(/twitch\.tv\/([a-zA-Z0-9_]+)/i);
         if (channelMatch) {
           const ch = channelMatch[1].toLowerCase();
-          return { platform: 'twitch', type: 'channel', id: ch, channel: ch, isShort: false };
+          return { platform: 'twitch', type: 'channel', id: ch, channel: ch, isShort: false, isLive: true };
         }
       }
 
       const isShortUrl = /youtube\.com\/shorts\//i.test(trimmed);
+      const isLiveUrl = /youtube\.com\/live\//i.test(trimmed);
       const listMatch = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/i);
       const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|live|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
       const ytMatch = trimmed.match(ytRegex);
 
+      // URL全体がプレイリスト専用URL (youtube.com/playlist?list=...) の場合のみplaylistタイプにする
       if (listMatch && (!ytMatch || trimmed.indexOf('playlist?') !== -1)) {
-        return { platform: 'youtube', type: 'playlist', id: listMatch[1], listId: listMatch[1], isShort: false };
+        return { platform: 'youtube', type: 'playlist', id: listMatch[1], listId: listMatch[1], isShort: false, isLive: false };
       }
+      // 個別動画URLに &list=... が付いていても、単体動画再生エラーを防ぐため video としてシンプルに扱う
       if (ytMatch) {
         return {
           platform: 'youtube',
           type: 'video',
           id: ytMatch[1],
-          listId: listMatch ? listMatch[1] : null,
-          isShort: isShortUrl
+          listId: null,
+          isShort: isShortUrl,
+          isLive: isLiveUrl
         };
       }
 
       if (/^(?:PL|UU|FL|LL|RD|OL)[a-zA-Z0-9_-]{10,}$/.test(trimmed)) {
-        return { platform: 'youtube', type: 'playlist', id: trimmed, listId: trimmed, isShort: false };
+        return { platform: 'youtube', type: 'playlist', id: trimmed, listId: trimmed, isShort: false, isLive: false };
       }
 
       if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-        return { platform: 'youtube', type: 'video', id: trimmed, isShort: false };
+        return { platform: 'youtube', type: 'video', id: trimmed, isShort: false, isLive: false };
       }
       if (/^[a-zA-Z0-9_]{3,25}$/.test(trimmed)) {
         const ch = trimmed.toLowerCase();
-        return { platform: 'twitch', type: 'channel', id: ch, channel: ch, isShort: false };
+        return { platform: 'twitch', type: 'channel', id: ch, channel: ch, isShort: false, isLive: true };
       }
       return null;
     }
@@ -683,7 +712,7 @@
         if (media.isShort) {
           return 'https://www.youtube.com/shorts/' + media.id;
         }
-        return 'https://www.youtube.com/watch?v=' + media.id + (media.listId ? '&list=' + media.listId : '');
+        return 'https://www.youtube.com/watch?v=' + media.id;
       }
       if (media.platform === 'twitch') {
         return media.type === 'video'
@@ -691,6 +720,77 @@
           : 'https://www.twitch.tv/' + media.id;
       }
       return '';
+    }
+
+    // 複数の動画アイテムに対して、YouTube API `videos` エンドポイントで「LIVE配信中 / 配信予定 / 配信アーカイブ / ショート / 再生時間」を一括付与する関数
+    async function enrichYouTubeVideoItems(items) {
+      if (!items || items.length === 0) return items;
+      const videoIds = items
+        .filter((it) => it.platform === 'youtube' && it.type === 'video' && it.id)
+        .map((it) => it.id);
+      if (videoIds.length === 0) return items;
+
+      const activeApiKey = (state.search.ytApiKey || localStorage.getItem(YT_API_KEY_STORAGE) || '').trim();
+      if (!activeApiKey && !isOAuthTokenValid()) return items;
+
+      try {
+        const data = await fetchYouTubeOfficialApi('videos', {
+          part: 'snippet,contentDetails,liveStreamingDetails',
+          id: videoIds.slice(0, 50).join(',')
+        });
+        const detailMap = {};
+        (data.items || []).forEach((v) => {
+          detailMap[v.id] = v;
+        });
+
+        items.forEach((it) => {
+          const d = detailMap[it.id];
+          if (!d) return;
+
+          const liveBroadcast = d.snippet?.liveBroadcastContent || 'none';
+          const hasLiveDetails = Boolean(d.liveStreamingDetails);
+          const sec = parseIsoDurationSeconds(d.contentDetails?.duration);
+          const durationText = formatDurationSeconds(sec);
+
+          if (liveBroadcast === 'live') {
+            it.isLive = true;
+            it.isUpcoming = false;
+            it.isShort = false;
+            it.mediaBadgeType = 'live';
+            it.durationText = 'LIVE';
+            const viewersNum = d.liveStreamingDetails?.concurrentViewers;
+            it.viewers = viewersNum ? `🟠 ${Number(viewersNum).toLocaleString()} 人視聴中` : '🟠 LIVE配信中';
+          } else if (liveBroadcast === 'upcoming') {
+            it.isLive = false;
+            it.isUpcoming = true;
+            it.isShort = false;
+            it.mediaBadgeType = 'upcoming';
+            it.durationText = '配信予定';
+            it.viewers = '🗓️ 配信予定枠';
+          } else {
+            it.isLive = false;
+            it.isUpcoming = false;
+            const hasShortTag = detectIsShortText(d.snippet?.title) || detectIsShortText(d.snippet?.description);
+            if ((sec > 0 && sec <= 65) || hasShortTag) {
+              it.isShort = true;
+              it.mediaBadgeType = 'short';
+              it.durationText = durationText || 'ショート';
+              it.viewers = `📱 ショート動画 (${it.durationText})`;
+            } else if (hasLiveDetails) {
+              it.isShort = false;
+              it.mediaBadgeType = 'archive';
+              it.durationText = durationText;
+              it.viewers = `📡 配信アーカイブ${durationText ? ' · ' + durationText : ''}`;
+            } else {
+              it.isShort = false;
+              it.mediaBadgeType = 'video';
+              it.durationText = durationText;
+              it.viewers = `🎬 通常動画${durationText ? ' · ' + durationText : ''}`;
+            }
+          }
+        });
+      } catch (e) {}
+      return items;
     }
 
     // ==========================================
@@ -719,14 +819,14 @@
 
         const savedKey = localStorage.getItem(YT_API_KEY_STORAGE);
         if (savedKey) {
-          state.search.ytApiKey = savedKey;
-          document.getElementById('yt-api-key-input').value = savedKey;
+          state.search.ytApiKey = savedKey.trim();
+          document.getElementById('yt-api-key-input').value = state.search.ytApiKey;
         }
 
         const savedClientId = localStorage.getItem(GOOGLE_CLIENT_ID_STORAGE);
         if (savedClientId) {
-          state.search.googleClientId = savedClientId;
-          document.getElementById('google-client-id-input').value = savedClientId;
+          state.search.googleClientId = savedClientId.trim();
+          document.getElementById('google-client-id-input').value = state.search.googleClientId;
         }
 
         const savedCache = localStorage.getItem(YT_CACHE_STORAGE);
@@ -842,6 +942,10 @@
         localStorage.setItem(GOOGLE_CLIENT_ID_STORAGE, clientId);
       } catch (e) {}
 
+      if (state.viewMode === 'single' && state.single.media && state.single.showChat) {
+        renderSingleChat();
+      }
+
       const msg = document.getElementById('settings-save-msg');
       msg.classList.remove('hidden');
       setTimeout(() => msg.classList.add('hidden'), 3500);
@@ -849,18 +953,21 @@
 
     function recordWatchHistory(media, title, author, thumbnail) {
       if (!media || !media.id) return;
+      const isLive = Boolean(media.isLive);
+      const isShort = Boolean(media.isShort);
       const entry = {
         platform: media.platform,
         type: media.type || 'video',
         id: media.id,
-        listId: media.listId || null,
+        listId: null,
         channel: media.channel || null,
-        isShort: Boolean(media.isShort),
-        title: title || (media.type === 'playlist' ? 'YouTube プレイリスト (' + media.id + ')' : (media.isShort ? 'YouTube ショート (' + media.id + ')' : (media.platform.toUpperCase() + ': ' + media.id))),
+        isShort: isShort,
+        isLive: isLive,
+        mediaBadgeType: isLive ? 'live' : (isShort ? 'short' : 'video'),
+        title: title || (media.type === 'playlist' ? 'YouTube プレイリスト (' + media.id + ')' : (isShort ? 'YouTube ショート (' + media.id + ')' : (media.platform.toUpperCase() + ': ' + media.id))),
         author: author || (media.platform === 'twitch' ? 'twitch.tv/' + media.id : 'YouTube'),
         thumbnail: thumbnail || (media.platform === 'youtube' && media.type !== 'playlist' ? 'https://i.ytimg.com/vi/' + media.id + '/mqdefault.jpg' : ''),
-        isLive: false,
-        viewers: (media.isShort ? '📱 ショート · ' : '再生履歴: ') + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        viewers: (isLive ? '🟠 LIVE · ' : (isShort ? '📱 ショート · ' : '🎬 動画 · ')) + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       state.search.history = state.search.history.filter(
@@ -978,9 +1085,9 @@
         multiView.classList.add('hidden');
         oriControls.classList.remove('opacity-40', 'pointer-events-none');
         pauseAllMultiStreams();
+        applyResponsiveLayout();
         renderSingleMedia();
         renderSingleChat();
-        applyResponsiveLayout();
       } else {
         singleView.classList.add('hidden');
         multiView.classList.remove('hidden');
@@ -1017,7 +1124,6 @@
       }
     }
 
-    // ショート動画時はコメントONでも動画とコメントが見やすいよう「左に9:16動画＋右にコメント」の横並び配置に自動最適化
     function applyResponsiveLayout() {
       const badge = document.getElementById('layout-status-badge');
       if (state.viewMode === 'multi') {
@@ -1037,7 +1143,6 @@
       const optBtn = document.getElementById('btn-single-optimize');
       const shortBtn = document.getElementById('btn-single-short-mode');
 
-      // ツールバーのボタン表記更新
       if (shortBtn) {
         shortBtn.className = 'px-2 py-1 rounded-lg border text-xs font-bold transition-colors ' +
           (isShort ? 'badge-orange' : 'theme-sub theme-text-sub hover:opacity-80');
@@ -1048,7 +1153,6 @@
       }
       updateSingleChatButtonUI();
 
-      // ショート動画視聴時：コメント非表示なら全画面9:16中央表示、コメント表示時は見やすい「左：縦動画 / 右：コメント」の横並び
       if (isShort) {
         badge.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium badge-orange shrink-0';
         badge.textContent = state.single.showChat
@@ -1056,7 +1160,7 @@
           : '📱 ショート (9:16 集中視聴)';
 
         singleView.className = 'w-full h-full flex flex-row overflow-hidden';
-        videoPane.className = 'h-full shrink-0 border-r theme-border bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+        videoPane.className = 'h-full shrink-0 border-r theme-border bg-black relative flex items-center justify-center overflow-hidden';
         videoPane.style.height = '100%';
         videoPane.style.width = state.single.showChat ? state.single.shortVideoWidth + '%' : '100%';
 
@@ -1064,18 +1168,18 @@
         if (sizeLabel) sizeLabel.textContent = state.single.shortVideoWidth + '%';
       } else if (portrait) {
         badge.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium badge-green shrink-0';
-        badge.textContent = '📱 縦長 (動画下チャット)';
+        badge.textContent = '📱 縦長 (動画下チャット/コメント)';
         singleView.className = 'w-full h-full flex flex-col overflow-hidden';
-        videoPane.className = 'w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+        videoPane.className = 'w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center overflow-hidden';
         videoPane.style.width = '100%';
         videoPane.style.height = state.single.showChat ? state.single.videoHeight + '%' : '100%';
         if (slider) slider.value = state.single.videoHeight;
         if (sizeLabel) sizeLabel.textContent = state.single.videoHeight + '%';
       } else {
         badge.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium badge-orange shrink-0';
-        badge.textContent = '🖥️ 横長 (動画右チャット)';
+        badge.textContent = '🖥️ 横長 (動画右チャット/コメント)';
         singleView.className = 'w-full h-full flex flex-row overflow-hidden';
-        videoPane.className = 'h-full shrink-0 border-r theme-border bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+        videoPane.className = 'h-full shrink-0 border-r theme-border bg-black relative flex items-center justify-center overflow-hidden';
         videoPane.style.height = '100%';
         videoPane.style.width = state.single.showChat ? state.single.videoWidth + '%' : '100%';
         if (slider) slider.value = state.single.videoWidth;
@@ -1089,6 +1193,33 @@
         chatPane.classList.add('hidden');
         if (sizeControlsWrap) sizeControlsWrap.classList.add('hidden');
       }
+
+      syncSingleVideoInnerBox();
+    }
+
+    function syncSingleVideoInnerBox() {
+      const inner = document.getElementById('single-yt-inner-box');
+      const pane = document.getElementById('single-video-pane');
+      if (!inner || !pane) return;
+
+      const isShort = Boolean(state.single.media && state.single.media.isShort);
+      if (!isShort) {
+        inner.style.width = '100%';
+        inner.style.height = '100%';
+        return;
+      }
+
+      const rect = pane.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      let w = rect.height * (9 / 16);
+      let h = rect.height;
+      if (w > rect.width) {
+        w = rect.width;
+        h = rect.width * (16 / 9);
+      }
+      inner.style.width = Math.floor(w) + 'px';
+      inner.style.height = Math.floor(h) + 'px';
     }
 
     window.addEventListener('resize', () => {
@@ -1098,27 +1229,58 @@
         if (state.orientationLock === 'auto') {
           applyResponsiveLayout();
         }
+      } else {
+        syncSingleVideoInnerBox();
       }
     });
 
     // ==========================================
-    // シングル視聴モード制御 ＆ ショート動画 ＆ 比率最適化
+    // シングル視聴モード制御（同期・即時再生でブロック回避）
     // ==========================================
-    function applySingleMediaWithDefaults(mediaObj, rawUrlInput = '') {
+    function applySingleMediaImmediately(mediaObj, rawUrlInput = '') {
       state.single.media = mediaObj;
+      state.single.forceChatMode = null;
       state.single.rawUrl = buildStandardUrl(mediaObj, rawUrlInput);
       document.getElementById('single-url-input').value = state.single.rawUrl;
 
-      // ショート動画はデフォルトでコメント非表示、通常動画はデフォルト表示
-      if (mediaObj && mediaObj.isShort) {
-        state.single.showChat = false;
-      } else {
-        state.single.showChat = true;
-      }
+      // ショート動画はデフォルトでコメント非表示、通常動画・LIVEはデフォルト表示
+      state.single.showChat = !(mediaObj && mediaObj.isShort);
 
+      applyResponsiveLayout();
       renderSingleMedia();
       renderSingleChat();
-      applyResponsiveLayout();
+      setTimeout(() => syncSingleVideoInnerBox(), 50);
+
+      // URL直接入力時など、まだショート/LIVE判定が済んでいない場合は裏で非同期チェックして必要時のみUI更新
+      if (mediaObj && mediaObj.platform === 'youtube' && mediaObj.type === 'video' && mediaObj.mediaBadgeType === undefined) {
+        checkSingleMediaDetailsBackground(mediaObj.id);
+      }
+    }
+
+    async function checkSingleMediaDetailsBackground(videoId) {
+      try {
+        const items = [{ platform: 'youtube', type: 'video', id: videoId }];
+        await enrichYouTubeVideoItems(items);
+        const info = items[0];
+        if (!state.single.media || state.single.media.id !== videoId) return;
+
+        const prevShort = Boolean(state.single.media.isShort);
+        const prevLive = Boolean(state.single.media.isLive);
+        state.single.media.isShort = Boolean(info.isShort);
+        state.single.media.isLive = Boolean(info.isLive);
+        state.single.media.mediaBadgeType = info.mediaBadgeType || 'video';
+
+        if (prevShort !== state.single.media.isShort) {
+          state.single.showChat = !state.single.media.isShort;
+          state.single.rawUrl = buildStandardUrl(state.single.media);
+          document.getElementById('single-url-input').value = state.single.rawUrl;
+          applyResponsiveLayout();
+          syncSingleVideoInnerBox();
+        }
+        if (prevLive !== state.single.media.isLive || prevShort !== state.single.media.isShort) {
+          renderSingleChat();
+        }
+      } catch (e) {}
     }
 
     function handleSingleSubmit(e) {
@@ -1129,11 +1291,10 @@
         alert('有効なYouTube（動画・ショート・ライブ・プレイリスト）またはTwitchのURLを入力してください。');
         return;
       }
-      recordWatchHistory(parsed);
-      applySingleMediaWithDefaults(parsed, input);
+      applySingleMediaImmediately(parsed, input);
+      recordWatchHistory(state.single.media);
     }
 
-    // 手動でショート(9:16)モードと通常(16:9)モードを切り替える
     function toggleSingleShortMode() {
       if (!state.single.media) {
         alert('先に動画またはURLを選択してください。');
@@ -1143,16 +1304,11 @@
       state.single.rawUrl = buildStandardUrl(state.single.media);
       document.getElementById('single-url-input').value = state.single.rawUrl;
 
-      // ショートモードに切り替えた瞬間はデフォルトとしてコメント非表示にする（再度ボタンを押せば横並びで表示可能）
-      if (state.single.media.isShort) {
-        state.single.showChat = false;
-      } else {
-        state.single.showChat = true;
-      }
+      state.single.showChat = !state.single.media.isShort;
 
-      renderSingleMedia();
-      renderSingleChat();
       applyResponsiveLayout();
+      syncSingleVideoInnerBox();
+      renderSingleChat();
     }
 
     function handleSingleSizeSlider(val) {
@@ -1166,6 +1322,7 @@
       if (isShort) {
         state.single.shortVideoWidth = v;
         document.getElementById('single-video-pane').style.width = v + '%';
+        syncSingleVideoInnerBox();
       } else if (isPortraitEffective()) {
         state.single.videoHeight = v;
         document.getElementById('single-video-pane').style.height = v + '%';
@@ -1175,7 +1332,6 @@
       }
     }
 
-    // ワンクリックで現在の動画比率(16:9 または ショート9:16)に合わせて動画枠サイズを最適化
     function optimizeSingleVideoSize() {
       if (!state.single.showChat) {
         state.single.showChat = true;
@@ -1189,19 +1345,16 @@
       const isShort = Boolean(state.single.media && state.single.media.isShort);
 
       if (isShort) {
-        // ショート動画(9:16)：現在の高さに対して9:16ぴったりになる横幅(height * 9 / 16)を計算し、残りをすべてコメント欄に割り当て
         const idealShortWidthPx = Math.min(rect.width - 260, rect.height * (9 / 16));
         let pct = Math.round((idealShortWidthPx / rect.width) * 100);
         pct = Math.max(25, Math.min(70, pct));
         state.single.shortVideoWidth = pct;
       } else if (isPortraitEffective()) {
-        // 通常動画(16:9) 縦長時：横幅100%に対する16:9の理想の高さ = width * 9 / 16
         const idealHeightPx = rect.width * (9 / 16);
         let pct = Math.round((idealHeightPx / rect.height) * 100);
         pct = Math.max(20, Math.min(85, pct));
         state.single.videoHeight = pct;
       } else {
-        // 通常動画(16:9) 横長時：高さに対する16:9の理想の幅 = height * 16 / 9
         const idealWidthPx = Math.min(rect.width - 260, rect.height * (16 / 9));
         let pct = Math.round((idealWidthPx / rect.width) * 100);
         pct = Math.max(30, Math.min(85, pct));
@@ -1213,8 +1366,8 @@
     function updateSingleChatButtonUI() {
       const btn = document.getElementById('btn-single-chat-toggle');
       if (!btn) return;
-      const isShort = Boolean(state.single.media && state.single.media.isShort);
-      const labelType = isShort ? 'コメント' : 'チャット';
+      const isLive = Boolean(state.single.media && state.single.media.isLive);
+      const labelType = isLive ? 'チャット' : 'コメント';
       if (state.single.showChat) {
         btn.className = 'px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors badge-green';
         btn.textContent = `💬 ${labelType}表示中`;
@@ -1226,7 +1379,6 @@
 
     function toggleSingleChat() {
       state.single.showChat = !state.single.showChat;
-      // ショート動画でコメントをONにした瞬間、自動で動画とコメントが見やすい9:16最適幅を計算
       if (state.single.showChat && state.single.media && state.single.media.isShort) {
         optimizeSingleVideoSize();
         renderSingleChat();
@@ -1234,6 +1386,25 @@
       }
       updateSingleChatButtonUI();
       applyResponsiveLayout();
+      if (state.single.showChat) {
+        renderSingleChat();
+      }
+    }
+
+    // ライブチャットと動画コメント欄の手動切替
+    function switchSingleChatOrComments() {
+      const currentEffective = getEffectiveSingleChatMode();
+      state.single.forceChatMode = currentEffective === 'chat' ? 'comments' : 'chat';
+      renderSingleChat();
+    }
+
+    function getEffectiveSingleChatMode() {
+      if (state.single.forceChatMode) return state.single.forceChatMode;
+      const m = state.single.media;
+      if (!m || m.platform !== 'youtube') return 'chat';
+      if (m.isShort) return 'comments';
+      // YouTubeで現在LIVE中のみライブチャット、通常の動画やアーカイブはコメント欄をデフォルト表示
+      return m.isLive ? 'chat' : 'comments';
     }
 
     function pauseSingleStream() {
@@ -1244,6 +1415,7 @@
       state.single.twitchPlayer = null;
     }
 
+    // 重要修正：個別動画の埋め込みURLにはエラーの元になる &list= や &playlist= を一切付与せずシンプルに生成
     function renderSingleMedia() {
       const container = document.getElementById('single-video-container');
       const badge = document.getElementById('single-platform-badge');
@@ -1256,8 +1428,19 @@
 
       badge.classList.remove('hidden');
       if (media.platform === 'youtube') {
-        badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 ' + (media.isShort ? 'badge-orange border' : 'btn-mono');
-        badge.textContent = media.type === 'playlist' ? 'YT LIST' : (media.isShort ? '📱 SHORTS' : 'YouTube');
+        if (media.type === 'playlist') {
+          badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 badge-green border';
+          badge.textContent = '📂 PLAYLIST';
+        } else if (media.isShort) {
+          badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 badge-orange border';
+          badge.textContent = '📱 SHORTS';
+        } else if (media.isLive) {
+          badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 btn-orange';
+          badge.textContent = '🟠 LIVE';
+        } else {
+          badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 btn-mono';
+          badge.textContent = '🎬 動画';
+        }
       } else {
         badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 badge-orange border';
         badge.textContent = 'Twitch';
@@ -1267,25 +1450,27 @@
       state.single.twitchPlayer = null;
 
       if (media.platform === 'youtube') {
-        // ショート動画時は9:16の美しい縦型フレームとして中央に配置
         const wrapper = document.createElement('div');
-        wrapper.className = media.isShort
-          ? 'h-full aspect-[9/16] max-w-full bg-black relative flex items-center justify-center shadow-2xl mx-auto'
-          : 'w-full h-full';
+        wrapper.id = 'single-yt-inner-box';
+        wrapper.className = 'bg-black relative flex items-center justify-center mx-auto overflow-hidden';
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100%';
 
         const iframe = document.createElement('iframe');
-        iframe.className = 'w-full h-full border-0';
+        iframe.className = 'w-full h-full border-0 block';
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         iframe.allowFullscreen = true;
+
         if (media.type === 'playlist') {
           iframe.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(media.id)}&autoplay=1&playsinline=1`;
         } else {
-          const listParam = media.listId ? `&list=${encodeURIComponent(media.listId)}` : '';
-          const loopParam = media.isShort ? `&loop=1&playlist=${encodeURIComponent(media.id)}` : '';
-          iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(media.id)}?autoplay=1&playsinline=1${listParam}${loopParam}`;
+          // 余計なlistやplaylistパラメータを付けず、100%確実に再生できる標準embed URLを使用
+          iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(media.id)}?autoplay=1&playsinline=1&rel=0`;
         }
+
         wrapper.appendChild(iframe);
         container.appendChild(wrapper);
+        syncSingleVideoInnerBox();
       } else if (media.platform === 'twitch') {
         const playerDiv = document.createElement('div');
         playerDiv.id = 'single-twitch-embed';
@@ -1313,10 +1498,11 @@
       }
     }
 
-    // ショート動画・通常動画のコメント一覧をAPIで読み込んで見やすく描画する関数
+    // ==========================================
+    // 動画・ショート動画のコメント一覧取得パネル
+    // ==========================================
     async function renderYouTubeCommentsPanel(targetContainer, videoId) {
       const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
-      const shortsUrl = `https://www.youtube.com/shorts/${encodeURIComponent(videoId)}`;
 
       targetContainer.innerHTML = `
         <div class="w-full h-full flex flex-col overflow-hidden">
@@ -1324,13 +1510,13 @@
             <div class="text-center py-6 theme-text-muted">コメントを読み込んでいます...</div>
           </div>
           <div class="p-2 border-t theme-border theme-sub flex flex-wrap items-center justify-between gap-1.5 text-[11px] shrink-0">
-            <span class="theme-text-muted truncate">💬 YouTube コメント欄</span>
+            <span class="theme-text-muted truncate">💬 YouTube コメント一覧 (${escapeHtml(videoId)})</span>
             <div class="flex items-center gap-1.5">
-              <button onclick="openPopupWindow('${shortsUrl}')" class="px-2 py-1 rounded btn-mono font-medium">
+              <button onclick="openPopupWindow('${watchUrl}')" class="px-2 py-1 rounded btn-mono font-medium">
                 ↗ 小窓で開く
               </button>
               <a href="${watchUrl}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded badge-green border font-bold">
-                ↗ YouTubeでコメントを見る・書く
+                ↗ YouTubeで開く
               </a>
             </div>
           </div>
@@ -1340,44 +1526,62 @@
       const listEl = targetContainer.querySelector(`#comments-list-${CSS.escape(videoId)}`);
       if (!listEl) return;
 
-      // 1. 公式APIキーまたはOAuth連携がある場合は公式commentThreadsエンドポイントから取得
-      if (state.search.ytApiKey || isOAuthTokenValid()) {
+      let apiErrorReason = '';
+
+      const activeApiKey = (state.search.ytApiKey || localStorage.getItem(YT_API_KEY_STORAGE) || '').trim();
+      if (activeApiKey) {
         try {
-          const data = await fetchYouTubeOfficialApi('commentThreads', {
-            part: 'snippet',
-            videoId: videoId,
-            maxResults: '40',
-            order: 'relevance'
-          });
-          const items = data.items || [];
-          if (items.length === 0) {
-            listEl.innerHTML = `<div class="text-center py-8 theme-text-muted">この動画にはまだコメントがありません。</div>`;
-            return;
-          }
-          listEl.innerHTML = items.map((it) => {
-            const c = it.snippet?.topLevelComment?.snippet || {};
-            const author = escapeHtml(c.authorDisplayName || 'ユーザー');
-            const avatar = c.authorProfileImageUrl ? `<img src="${escapeHtml(c.authorProfileImageUrl)}" class="w-6 h-6 rounded-full shrink-0 bg-zinc-700" loading="lazy" />` : `<div class="w-6 h-6 rounded-full btn-mono shrink-0 flex items-center justify-center text-[10px]">💬</div>`;
-            const likes = c.likeCount ? `👍 ${c.likeCount}` : '';
-            const text = escapeHtml(c.textOriginal || '').replace(/\n/g, '<br>');
-            return `
-              <div class="p-2.5 rounded-lg theme-sub border theme-border flex items-start gap-2.5">
-                ${avatar}
-                <div class="flex-1 min-w-0 space-y-1">
-                  <div class="flex items-center justify-between gap-1">
-                    <span class="font-bold text-[11px] theme-text truncate">${author}</span>
-                    <span class="text-[10px] theme-text-muted shrink-0">${likes}</span>
+          const url = new URL('https://www.googleapis.com/youtube/v3/commentThreads');
+          url.searchParams.set('part', 'snippet');
+          url.searchParams.set('videoId', videoId);
+          url.searchParams.set('maxResults', '50');
+          url.searchParams.set('order', 'relevance');
+          url.searchParams.set('key', activeApiKey);
+
+          const res = await fetchWithTimeout(url.toString(), {}, 8000);
+          const data = await res.json();
+
+          if (res.ok && data.items) {
+            if (data.items.length === 0) {
+              listEl.innerHTML = `<div class="text-center py-8 theme-text-muted">この動画にはまだコメントがありません。</div>`;
+              return;
+            }
+            listEl.innerHTML = data.items.map((it) => {
+              const c = it.snippet?.topLevelComment?.snippet || {};
+              const author = escapeHtml(c.authorDisplayName || 'ユーザー');
+              const avatar = c.authorProfileImageUrl
+                ? `<img src="${escapeHtml(c.authorProfileImageUrl)}" class="w-6 h-6 rounded-full shrink-0 bg-zinc-700" loading="lazy" />`
+                : `<div class="w-6 h-6 rounded-full btn-mono shrink-0 flex items-center justify-center text-[10px]">💬</div>`;
+              const likes = c.likeCount ? `👍 ${c.likeCount}` : '';
+              const text = escapeHtml(c.textOriginal || c.textDisplay || '').replace(/\n/g, '<br>');
+              return `
+                <div class="p-2.5 rounded-lg theme-sub border theme-border flex items-start gap-2.5">
+                  ${avatar}
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="font-bold text-[11px] theme-text truncate">${author}</span>
+                      <span class="text-[10px] theme-text-muted shrink-0">${likes}</span>
+                    </div>
+                    <div class="text-xs theme-text-sub leading-relaxed break-words">${text}</div>
                   </div>
-                  <div class="text-xs theme-text-sub leading-relaxed break-words">${text}</div>
                 </div>
-              </div>
-            `;
-          }).join('');
-          return;
-        } catch (e) {}
+              `;
+            }).join('');
+            return;
+          } else {
+            const errMsg = data.error?.message || `HTTP ${res.status}`;
+            const errReason = data.error?.errors?.[0]?.reason || '';
+            if (errReason === 'commentsDisabled') {
+              listEl.innerHTML = `<div class="text-center py-8 theme-text-muted">この動画はコメント欄がオフに設定されています。</div>`;
+              return;
+            }
+            apiErrorReason = `${errReason ? '[' + errReason + '] ' : ''}${errMsg}`;
+          }
+        } catch (e) {
+          apiErrorReason = e.message || '通信エラー';
+        }
       }
 
-      // 2. 公開Piped API経由のコメント取得フォールバック
       const pipedInstances = [
         'https://pipedapi.kavin.rocks',
         'https://pipedapi.tokhmi.xyz',
@@ -1409,19 +1613,24 @@
         } catch (e) {}
       }
 
-      // 3. APIキー未設定時の案内カード
       listEl.innerHTML = `
-        <div class="p-5 rounded-xl theme-sub border theme-border text-center space-y-3 my-2">
-          <p class="font-bold text-xs theme-text">📱 ショート動画のコメント表示</p>
-          <p class="text-[11px] theme-text-sub leading-relaxed">
-            「⚙️ API・連携設定」でYouTube APIキーまたはアカウント連携を行うと、このパネル内に直接コメント一覧を読み込んで快適に表示できます。
-          </p>
+        <div class="p-4 rounded-xl theme-sub border theme-border text-center space-y-2.5 my-2">
+          <p class="font-bold text-xs theme-text">💬 コメントを取得できませんでした</p>
+          ${apiErrorReason ? `
+            <div class="p-2 rounded bg-orange-500/10 border border-orange-500/30 text-orange-500 text-[11px] text-left break-all">
+              <strong>API応答詳細:</strong> ${escapeHtml(apiErrorReason)}
+            </div>
+          ` : `
+            <p class="text-[11px] theme-text-sub leading-relaxed">
+              「⚙️ API・連携設定」でYouTube Data APIキーを設定すると、このパネル内に直接コメント一覧を読み込んで表示できます。
+            </p>
+          `}
           <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
             <button onclick="openPopupWindow('${watchUrl}')" class="px-3 py-1.5 btn-green rounded-lg text-xs font-bold shadow-sm">
               ↗ ポップアップ小窓でコメントを開く
             </button>
             <button onclick="openSearchModal(null, 'settings')" class="px-3 py-1.5 theme-panel rounded-lg border text-xs font-medium">
-              ⚙️ API・連携設定を開く
+              ⚙️ API・連携設定を確認
             </button>
           </div>
         </div>
@@ -1436,27 +1645,38 @@
       const chatContainer = document.getElementById('single-chat-container');
       const chatTitle = document.getElementById('single-chat-title');
       const popoutLink = document.getElementById('single-chat-popout');
+      const switchBtn = document.getElementById('btn-single-switch-chatmode');
       const media = state.single.media;
 
       chatContainer.innerHTML = '';
       if (!media) {
-        chatTitle.textContent = 'ライブチャット';
+        chatTitle.textContent = 'ライブチャット / コメント';
         popoutLink.classList.add('hidden');
-        chatContainer.textContent = '動画・配信を選択するとチャットが表示されます';
+        if (switchBtn) switchBtn.classList.add('hidden');
+        chatContainer.textContent = '動画・配信を選択するとチャットまたはコメントが表示されます';
         return;
       }
 
       if (media.platform === 'youtube') {
         if (media.type === 'playlist') {
-          chatTitle.textContent = 'プレイリスト再生中';
+          chatTitle.textContent = 'プレイリスト連続再生中';
           popoutLink.classList.add('hidden');
-          chatContainer.innerHTML = '<div class="p-4 text-center text-xs theme-text-muted">プレイリスト全体の埋め込み再生中はライブチャットを表示できません。<br>プレイリスト内の個別動画を選択するとチャットが表示されます。</div>';
+          if (switchBtn) switchBtn.classList.add('hidden');
+          chatContainer.innerHTML = '<div class="p-4 text-center text-xs theme-text-muted">プレイリスト全体の連続再生中はチャットを表示できません。<br>「🔍 検索 / ライブラリ」からリスト内の個別動画を選択するとコメントが表示されます。</div>';
           return;
         }
 
-        // ショート動画の場合は専用のコメント一覧パネルを表示
-        if (media.isShort) {
-          chatTitle.textContent = `ショート動画コメント (${media.id})`;
+        const mode = getEffectiveSingleChatMode();
+        if (switchBtn) {
+          switchBtn.classList.remove('hidden');
+          switchBtn.textContent = mode === 'chat' ? '🔄 コメント欄に切替' : '🔄 ライブチャットに切替';
+        }
+
+        // コメントモード（通常動画・ショート動画・アーカイブ等）
+        if (mode === 'comments') {
+          chatTitle.textContent = media.isShort
+            ? `📱 ショート動画コメント (${media.id})`
+            : `💬 動画コメント欄 (${media.id})`;
           const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(media.id)}`;
           popoutLink.href = watchUrl;
           popoutLink.classList.remove('hidden');
@@ -1464,7 +1684,8 @@
           return;
         }
 
-        chatTitle.textContent = `YouTube チャット (${media.id})`;
+        // ライブチャットモード（LIVE配信中）
+        chatTitle.textContent = `🟠 YouTube ライブチャット (${media.id})`;
         const popoutUrl = `https://www.youtube.com/live_chat?v=${encodeURIComponent(media.id)}&is_popout=1`;
         popoutLink.href = popoutUrl;
         popoutLink.classList.remove('hidden');
@@ -1484,6 +1705,7 @@
         iframe.src = `https://www.youtube.com/live_chat?v=${encodeURIComponent(media.id)}&embed_domain=${encodeURIComponent(embedDomain)}${darkParam}`;
         chatContainer.appendChild(iframe);
       } else if (media.platform === 'twitch') {
+        if (switchBtn) switchBtn.classList.add('hidden');
         if (media.type === 'video' && !media.channel) {
           chatTitle.textContent = 'Twitch アーカイブ';
           popoutLink.classList.add('hidden');
@@ -1505,7 +1727,7 @@
     }
 
     // ==========================================
-    // 可変マルチ画面モード (2画面 / 3画面 / 4画面 + ショート動画対応)
+    // 可変マルチ画面モード (2画面 / 3画面 / 4画面)
     // ==========================================
     function renderMultiToolbarAudioButtons() {
       const wrap = document.getElementById('multi-audio-buttons');
@@ -1543,6 +1765,7 @@
         const slot = state.multi.slots[i];
         const isMain = state.multi.activeAudioIndex === i;
         const isShort = Boolean(slot.media && slot.media.isShort);
+        const isLive = Boolean(slot.media && slot.media.isLive);
 
         const row = document.createElement('div');
         row.id = `multi-slot-row-${i}`;
@@ -1558,7 +1781,7 @@
           ? (slot.customVideoWidthPx ? 'shrink-0 border-r theme-border' : `${defaultWidthRatio} border-r theme-border`)
           : 'w-full';
 
-        const chatLabel = isShort ? 'コメント' : '横チャット';
+        const chatLabel = (isShort || (!isLive && slot.media?.platform === 'youtube')) ? 'コメント' : '横チャット';
 
         row.innerHTML = `
           <!-- スロットヘッダーバー -->
@@ -1572,7 +1795,7 @@
                 id="slot-url-input-${i}"
                 type="text"
                 value="${escapeHtml(slot.rawUrl)}"
-                placeholder="YouTube(通常/ショート) / Twitch URLを入力して「反映」"
+                placeholder="YouTube(通常/ショート/LIVE) / Twitch URLを入力して「反映」"
                 class="flex-1 theme-input border rounded px-2 py-0.5 text-xs"
               />
               <button type="submit" class="px-2.5 py-0.5 btn-mono rounded font-bold text-[11px] shrink-0">
@@ -1655,14 +1878,14 @@
 
           <!-- スロットコンテンツ部（動画＋横チャット/コメント） -->
           <div id="slot-body-${i}" class="${slot.minimized ? 'hidden' : 'flex-1 min-h-0 flex flex-row overflow-hidden'}">
-            <div id="slot-video-pane-${i}" ${customWidthStyle} class="${videoWidthClass} h-full bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150">
+            <div id="slot-video-pane-${i}" ${customWidthStyle} class="${videoWidthClass} h-full bg-black relative flex items-center justify-center overflow-hidden">
               <div id="slot-video-container-${i}" class="w-full h-full flex items-center justify-center overflow-hidden"></div>
             </div>
             <div id="slot-chat-pane-${i}" class="${slot.showChat ? 'flex-1' : 'hidden'} h-full min-w-0 flex flex-col theme-panel overflow-hidden">
               <div class="flex items-center justify-between px-2 py-1 theme-sub border-b text-[11px] shrink-0">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span id="slot-chat-title-${i}" class="font-medium theme-text truncate">チャット</span>
+                  <span id="slot-chat-title-${i}" class="font-medium theme-text truncate">チャット / コメント</span>
                 </div>
                 <div class="flex items-center gap-1">
                   <a id="slot-chat-popout-${i}" href="#" target="_blank" rel="noopener noreferrer" class="hidden theme-text-sub hover:text-emerald-500">↗</a>
@@ -1682,7 +1905,6 @@
       }
     }
 
-    // マルチスロット単体のサイズ最適化（通常動画は16:9幅、ショート動画は9:16幅を自動計算）
     function optimizeMultiSlotSize(idx) {
       const slot = state.multi.slots[idx];
       if (!slot) return;
@@ -1704,16 +1926,17 @@
       if (!rect.height || !rect.width) return;
 
       const isShort = Boolean(slot.media && slot.media.isShort);
+      const isLive = Boolean(slot.media && slot.media.isLive);
       const ratio = isShort ? (9 / 16) : (16 / 9);
       const idealWidthPx = Math.round(Math.min(rect.width - 220, Math.max(140, rect.height * ratio)));
       slot.customVideoWidthPx = idealWidthPx;
 
-      videoPane.className = 'shrink-0 border-r theme-border h-full bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+      videoPane.className = 'shrink-0 border-r theme-border h-full bg-black relative flex items-center justify-center overflow-hidden';
       videoPane.style.width = idealWidthPx + 'px';
       chatPane.className = 'flex-1 h-full min-w-0 flex flex-col theme-panel overflow-hidden';
       if (chatBtn) {
         chatBtn.className = 'px-2 py-0.5 rounded border text-[11px] font-bold transition-colors badge-green';
-        chatBtn.textContent = isShort ? 'コメントON' : '横チャットON';
+        chatBtn.textContent = (isShort || (!isLive && slot.media?.platform === 'youtube')) ? 'コメントON' : '横チャットON';
       }
     }
 
@@ -1732,7 +1955,6 @@
       slot.media.isShort = !slot.media.isShort;
       slot.rawUrl = buildStandardUrl(slot.media);
       slot.customVideoWidthPx = null;
-      // ショート動画にした時はデフォルトでコメントOFF
       slot.showChat = !slot.media.isShort;
       buildMultiViewDOM();
     }
@@ -1750,7 +1972,7 @@
       slot.rawUrl = buildStandardUrl(parsed, inputEl.value);
       slot.minimized = false;
       slot.customVideoWidthPx = null;
-      slot.showChat = !parsed.isShort; // ショート動画はデフォルトでコメントOFF
+      slot.showChat = !parsed.isShort;
       inputEl.value = slot.rawUrl;
       recordWatchHistory(parsed);
 
@@ -1783,8 +2005,8 @@
       const slot = state.multi.slots[idx];
       slot.showChat = !slot.showChat;
       const isShort = Boolean(slot.media && slot.media.isShort);
+      const isLive = Boolean(slot.media && slot.media.isLive);
 
-      // ショート動画でコメントをONにした時は9:16最適幅を自動適用して動画とコメントを見やすく並べる
       if (slot.showChat && isShort) {
         optimizeMultiSlotSize(idx);
         renderMultiSlotChat(idx);
@@ -1794,21 +2016,22 @@
       const videoPane = document.getElementById(`slot-video-pane-${idx}`);
       const chatPane = document.getElementById(`slot-chat-pane-${idx}`);
       const chatBtn = document.getElementById(`slot-chat-btn-${idx}`);
-      const label = isShort ? 'コメント' : '横チャット';
+      const label = (isShort || (!isLive && slot.media?.platform === 'youtube')) ? 'コメント' : '横チャット';
 
       if (slot.showChat) {
         if (slot.customVideoWidthPx) {
-          videoPane.className = 'shrink-0 border-r theme-border h-full bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+          videoPane.className = 'shrink-0 border-r theme-border h-full bg-black relative flex items-center justify-center overflow-hidden';
           videoPane.style.width = slot.customVideoWidthPx + 'px';
         } else {
-          videoPane.className = 'w-[64%] border-r theme-border h-full bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+          videoPane.className = 'w-[64%] border-r theme-border h-full bg-black relative flex items-center justify-center overflow-hidden';
           videoPane.style.width = '';
         }
         chatPane.className = 'flex-1 h-full min-w-0 flex flex-col theme-panel overflow-hidden';
         chatBtn.className = 'px-2 py-0.5 rounded border text-[11px] font-bold transition-colors badge-green';
         chatBtn.textContent = `${label}ON`;
+        renderMultiSlotChat(idx);
       } else {
-        videoPane.className = 'w-full h-full bg-black relative flex items-center justify-center overflow-hidden transition-all duration-150';
+        videoPane.className = 'w-full h-full bg-black relative flex items-center justify-center overflow-hidden';
         videoPane.style.width = '';
         chatPane.className = 'hidden';
         chatBtn.className = 'px-2 py-0.5 rounded border text-[11px] font-medium transition-colors theme-panel theme-text-sub';
@@ -1860,8 +2083,19 @@
       if (badge) {
         badge.classList.remove('hidden');
         if (slot.media.platform === 'youtube') {
-          badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 ' + (slot.media.isShort ? 'badge-orange border' : 'btn-mono');
-          badge.textContent = slot.media.type === 'playlist' ? 'YT LIST' : (slot.media.isShort ? '📱 SHORTS' : 'YouTube');
+          if (slot.media.type === 'playlist') {
+            badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 badge-green border';
+            badge.textContent = '📂 LIST';
+          } else if (slot.media.isShort) {
+            badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 badge-orange border';
+            badge.textContent = '📱 SHORTS';
+          } else if (slot.media.isLive) {
+            badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 btn-orange';
+            badge.textContent = '🟠 LIVE';
+          } else {
+            badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 btn-mono';
+            badge.textContent = '🎬 動画';
+          }
         } else {
           badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 badge-orange border';
           badge.textContent = 'Twitch';
@@ -1872,12 +2106,12 @@
       if (slot.media.platform === 'youtube') {
         const wrapper = document.createElement('div');
         wrapper.className = slot.media.isShort
-          ? 'h-full aspect-[9/16] max-w-full bg-black relative flex items-center justify-center shadow-xl mx-auto'
+          ? 'h-full aspect-[9/16] max-w-full bg-black relative flex items-center justify-center mx-auto overflow-hidden'
           : 'w-full h-full';
 
         const iframe = document.createElement('iframe');
         iframe.id = `slot-yt-iframe-${idx}`;
-        iframe.className = 'w-full h-full border-0';
+        iframe.className = 'w-full h-full border-0 block';
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         iframe.allowFullscreen = true;
         const originParam = window.location.protocol.startsWith('http')
@@ -1886,9 +2120,8 @@
         if (slot.media.type === 'playlist') {
           iframe.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(slot.media.id)}&autoplay=1&playsinline=1&enablejsapi=1${originParam}`;
         } else {
-          const listParam = slot.media.listId ? `&list=${encodeURIComponent(slot.media.listId)}` : '';
-          const loopParam = slot.media.isShort ? `&loop=1&playlist=${encodeURIComponent(slot.media.id)}` : '';
-          iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(slot.media.id)}?autoplay=1&playsinline=1&enablejsapi=1${listParam}${loopParam}${originParam}`;
+          // 個別動画再生時はエラー原因となるlistやplaylistパラメータを付けない
+          iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(slot.media.id)}?autoplay=1&playsinline=1&rel=0&enablejsapi=1${originParam}`;
         }
         iframe.onload = () => {
           setTimeout(() => applyPlayerAudioToSlot(idx), 600);
@@ -1936,7 +2169,7 @@
 
       chatContainer.innerHTML = '';
       if (!slot.media) {
-        chatTitle.textContent = 'チャット';
+        chatTitle.textContent = 'チャット / コメント';
         popout.classList.add('hidden');
         chatContainer.textContent = '停止中';
         return;
@@ -1949,15 +2182,16 @@
           chatContainer.textContent = 'プレイリスト再生中';
           return;
         }
-        if (slot.media.isShort) {
-          chatTitle.textContent = `ショートコメント (${slot.media.id})`;
+        // ショート動画またはLIVEではない通常動画の場合はコメント一覧を表示
+        if (slot.media.isShort || !slot.media.isLive) {
+          chatTitle.textContent = `💬 コメント (${slot.media.id})`;
           const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(slot.media.id)}`;
           popout.href = watchUrl;
           popout.classList.remove('hidden');
           renderYouTubeCommentsPanel(chatContainer, slot.media.id);
           return;
         }
-        chatTitle.textContent = `YT (${slot.media.id})`;
+        chatTitle.textContent = `🟠 YTチャット (${slot.media.id})`;
         const popoutUrl = `https://www.youtube.com/live_chat?v=${encodeURIComponent(slot.media.id)}&is_popout=1`;
         popout.href = popoutUrl;
         popout.classList.remove('hidden');
@@ -2098,7 +2332,7 @@
     }
 
     // ==========================================
-    // セクション見出し・プレイリストサブタブ・カード表示切替 (4列 / 3列 / 2列 / リスト)
+    // セクション見出し・プレイリストサブタブ・カード表示切替
     // ==========================================
     function setSectionBanner(titleText, showBackBtn = false) {
       const titleEl = document.getElementById('current-section-title');
@@ -2162,7 +2396,7 @@
     }
 
     // ==========================================
-    // YouTube アカウント OAuth 2.0 連携 (永続保持＆キャッシュ対応)
+    // YouTube アカウント OAuth 2.0 連携 ＆ API通信制御
     // ==========================================
     function ensureGoogleTokenClient(onSuccessCallback) {
       if (!state.search.googleClientId) return false;
@@ -2170,7 +2404,7 @@
 
       state.search.tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: state.search.googleClientId,
-        scope: 'https://www.googleapis.com/auth/youtube.readonly',
+        scope: 'https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl',
         callback: (tokenResponse) => {
           if (tokenResponse && tokenResponse.access_token) {
             saveOAuthSession(tokenResponse.access_token, tokenResponse.expires_in);
@@ -2212,17 +2446,23 @@
     async function fetchYouTubeOfficialApi(endpoint, paramsObj) {
       const url = new URL('https://www.googleapis.com/youtube/v3/' + endpoint);
       Object.keys(paramsObj).forEach((k) => url.searchParams.set(k, paramsObj[k]));
-      if (state.search.ytApiKey && !paramsObj.mine && !paramsObj.myRating) {
-        url.searchParams.set('key', state.search.ytApiKey);
-      }
 
+      const requiresUserAuth = Boolean(paramsObj.mine || paramsObj.myRating);
+      const activeApiKey = (state.search.ytApiKey || localStorage.getItem(YT_API_KEY_STORAGE) || '').trim();
       const headers = {};
-      if (isOAuthTokenValid()) {
+
+      if (requiresUserAuth) {
+        if (isOAuthTokenValid()) {
+          headers['Authorization'] = 'Bearer ' + state.search.oauthToken;
+        }
+      } else if (activeApiKey) {
+        url.searchParams.set('key', activeApiKey);
+      } else if (isOAuthTokenValid()) {
         headers['Authorization'] = 'Bearer ' + state.search.oauthToken;
       }
 
       const res = await fetchWithTimeout(url.toString(), { headers: headers }, 7000);
-      if (res.status === 401) {
+      if (res.status === 401 && requiresUserAuth) {
         state.search.oauthToken = null;
         state.search.oauthExpiresAt = 0;
         updateYouTubeAuthBadgeUI();
@@ -2262,13 +2502,14 @@
           platform: 'youtube',
           type: 'playlist',
           itemKind: 'playlist',
+          mediaBadgeType: 'playlist',
           id: pl.id,
           listId: pl.id,
           isShort: false,
+          isLive: false,
           title: pl.snippet.title || '無題のプレイリスト',
           author: 'マイプレイリスト · 全' + (pl.contentDetails?.itemCount || 0) + '本の動画',
           thumbnail: pl.snippet.thumbnails?.medium?.url || pl.snippet.thumbnails?.default?.url || '',
-          isLive: false,
           viewers: (pl.contentDetails?.itemCount || 0) + ' 本'
         }));
         saveLibraryCache('mine', items);
@@ -2307,25 +2548,45 @@
       showSearchAreaMessage('高評価した動画を取得しています...', '', false);
       try {
         const data = await fetchYouTubeOfficialApi('videos', {
-          part: 'snippet',
+          part: 'snippet,contentDetails,liveStreamingDetails',
           myRating: 'like',
           maxResults: '36'
         });
         const items = (data.items || []).map((v) => {
           const title = v.snippet.title || 'YouTube動画';
           const desc = v.snippet.description || '';
-          const isShort = detectIsShortText(title) || detectIsShortText(desc);
+          const sec = parseIsoDurationSeconds(v.contentDetails?.duration);
+          const durationText = formatDurationSeconds(sec);
+          const isLive = v.snippet.liveBroadcastContent === 'live';
+          const hasLiveDetails = Boolean(v.liveStreamingDetails);
+          const isShort = !isLive && ((sec > 0 && sec <= 65) || detectIsShortText(title) || detectIsShortText(desc));
+
+          let mediaBadgeType = 'video';
+          let viewersText = `🎬 通常動画${durationText ? ' · ' + durationText : ''}`;
+          if (isLive) {
+            mediaBadgeType = 'live';
+            viewersText = '🟠 LIVE配信中';
+          } else if (isShort) {
+            mediaBadgeType = 'short';
+            viewersText = `📱 ショート (${durationText || '60s'})`;
+          } else if (hasLiveDetails) {
+            mediaBadgeType = 'archive';
+            viewersText = `📡 配信アーカイブ${durationText ? ' · ' + durationText : ''}`;
+          }
+
           return {
             platform: 'youtube',
             type: 'video',
             itemKind: 'video',
+            mediaBadgeType: mediaBadgeType,
+            durationText: durationText,
             id: v.id,
             isShort: isShort,
+            isLive: isLive,
             title: title,
             author: v.snippet.channelTitle || '',
             thumbnail: v.snippet.thumbnails?.medium?.url || ('https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg'),
-            isLive: v.snippet.liveBroadcastContent === 'live',
-            viewers: isShort ? '📱 ショート · 👍 高評価' : '👍 高評価動画'
+            viewers: viewersText
           };
         });
         saveLibraryCache('liked', items);
@@ -2375,13 +2636,14 @@
             platform: 'youtube',
             type: 'playlist',
             itemKind: 'channel',
+            mediaBadgeType: 'channel',
             id: uploadsPlaylistId,
             listId: uploadsPlaylistId,
             isShort: false,
-            title: sub.snippet.title || '登録チャンネル',
-            author: 'クリックして最新アップロード動画一覧を表示',
-            thumbnail: sub.snippet.thumbnails?.medium?.url || sub.snippet.thumbnails?.default?.url || '',
             isLive: false,
+            title: sub.snippet.title || '登録チャンネル',
+            author: 'クリックして最新アップロード動画・配信一覧を表示',
+            thumbnail: sub.snippet.thumbnails?.medium?.url || sub.snippet.thumbnails?.default?.url || '',
             viewers: '📺 登録CH'
           };
         });
@@ -2401,6 +2663,7 @@
       }
     }
 
+    // プレイリスト・チャンネル内動画展開時にも enrichYouTubeVideoItems を呼んで「LIVE / アーカイブ / ショート / 通常動画」を判別
     async function expandPlaylistItems(listId, listTitle) {
       if (!listId) return;
       if (state.search.results && state.search.results.length > 0 && !state.search.parentResults) {
@@ -2409,7 +2672,7 @@
       }
 
       setSectionBanner(`📂 「${listTitle || listId}」の動画一覧を読み込み中...`, true);
-      showSearchAreaMessage('プレイリスト内の動画一覧を取得しています...', '', false);
+      showSearchAreaMessage('プレイリスト内の動画・配信一覧を取得しています...', '', false);
 
       try {
         if (state.search.ytApiKey || isOAuthTokenValid()) {
@@ -2418,8 +2681,8 @@
             playlistId: listId,
             maxResults: '36'
           });
-          const items = (data.items || [])
-            .filter((it) => it.snippet?.resourceId?.videoId)
+          let items = (data.items || [])
+            .filter((it) => it.snippet?.resourceId?.videoId && it.snippet?.title !== 'Private video' && it.snippet?.title !== 'Deleted video')
             .map((it) => {
               const vid = it.snippet.resourceId.videoId;
               const title = it.snippet.title || '動画';
@@ -2428,18 +2691,23 @@
                 platform: 'youtube',
                 type: 'video',
                 itemKind: 'video',
+                mediaBadgeType: isShort ? 'short' : 'video',
                 id: vid,
-                listId: listId,
+                listId: null, // 単体動画再生エラーを避けるためlistIdは持たせない
                 isShort: isShort,
+                isLive: false,
                 title: title,
                 author: it.snippet.videoOwnerChannelTitle || it.snippet.channelTitle || '',
                 thumbnail: it.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
-                isLive: false,
-                viewers: isShort ? '📱 ショート' : 'プレイリスト内動画'
+                viewers: isShort ? '📱 ショート動画' : '🎬 通常動画'
               };
             });
+
+          // 一括でLIVE状況・秒数・アーカイブ判定を付与
+          items = await enrichYouTubeVideoItems(items);
+
           state.search.results = items;
-          setSectionBanner(`📂 「${listTitle || listId}」内の動画一覧 (${items.length}件)`, true);
+          setSectionBanner(`📂 「${listTitle || listId}」内の動画・配信一覧 (${items.length}件)`, true);
           renderCardGrid(items, 'results');
           return;
         }
@@ -2449,14 +2717,15 @@
         platform: 'youtube',
         type: 'playlist',
         itemKind: 'video',
+        mediaBadgeType: 'playlist',
         id: listId,
         listId: listId,
         isShort: false,
+        isLive: false,
         title: listTitle || `YouTube プレイリスト (${listId})`,
         author: 'クリックするとプレイヤーでプレイリスト全体を連続再生します',
         thumbnail: '',
-        isLive: false,
-        viewers: '連続再生'
+        viewers: '📂 連続再生'
       }];
       state.search.results = fallbackItem;
       setSectionBanner(`📂 プレイリスト (${listId})`, Boolean(state.search.parentResults));
@@ -2476,7 +2745,7 @@
     }
 
     // ==========================================
-    // 検索モーダル・お気に入り・カード描画 (ショート動画バッジ対応)
+    // 検索モーダル・お気に入り・カード描画 (LIVE配信 / 動画 / ショート明確区別デザイン)
     // ==========================================
     function openSearchModal(preferredTarget = null, initialTab = null) {
       state.search.preferredTarget = preferredTarget;
@@ -2540,9 +2809,9 @@
       if (tab === 'youtube') {
         ytFilter.classList.remove('hidden');
         searchForm.classList.remove('hidden');
-        setSectionBanner('YouTube 検索（通常動画 / ライブ / ショート対応）', false);
+        setSectionBanner('YouTube 検索（🟠LIVE配信 / 🎬通常動画 / 📱ショート判別対応）', false);
         if (state.search.results.length > 0) renderCardGrid(state.search.results, 'results');
-        else showSearchAreaMessage('上の検索バーにキーワードを入力して「検索する」を押してください。', 'APIキー未設定でも公開検索サーバー経由で検索できます。', false);
+        else showSearchAreaMessage('上の検索バーにキーワードを入力して「検索する」を押してください。', 'LIVE配信・通常動画・ショート動画が一目で分かるバッジ付きで一覧表示されます。', false);
       } else if (tab === 'twitch') {
         searchForm.classList.remove('hidden');
         setSectionBanner('Twitch チャンネル・配信検索', false);
@@ -2610,8 +2879,8 @@
 
       const directMedia = parseMediaInput(q);
       if (directMedia && (q.includes('http') || q.includes('youtu') || q.includes('twitch.tv'))) {
-        applyMediaToTarget(directMedia, state.search.preferredTarget);
         closeSearchModal();
+        applyMediaToTarget(directMedia, state.search.preferredTarget);
         return;
       }
 
@@ -2642,22 +2911,30 @@
           if (onlyShorts) params.videoDuration = 'short';
 
           const data = await fetchYouTubeOfficialApi('search', params);
-          const items = (data.items || []).map((it) => {
+          let items = (data.items || []).map((it) => {
             const title = it.snippet.title || '';
-            const isShort = onlyShorts || detectIsShortText(title) || detectIsShortText(it.snippet.description || '');
+            const isLive = it.snippet.liveBroadcastContent === 'live';
+            const isUpcoming = it.snippet.liveBroadcastContent === 'upcoming';
+            const isShort = !isLive && (onlyShorts || detectIsShortText(title) || detectIsShortText(it.snippet.description || ''));
             return {
               platform: 'youtube',
               type: 'video',
               itemKind: 'video',
+              mediaBadgeType: isLive ? 'live' : (isUpcoming ? 'upcoming' : (isShort ? 'short' : 'video')),
               id: it.id.videoId,
               isShort: isShort,
+              isLive: isLive,
+              isUpcoming: isUpcoming,
               title: title,
               author: it.snippet.channelTitle || '',
               thumbnail: it.snippet.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${it.id.videoId}/mqdefault.jpg`,
-              isLive: it.snippet.liveBroadcastContent === 'live',
-              viewers: it.snippet.liveBroadcastContent === 'live' ? '🟠 LIVE' : (isShort ? '📱 ショート' : 'YouTube動画')
+              viewers: isLive ? '🟠 LIVE配信中' : (isUpcoming ? '🗓️ 配信予定' : (isShort ? '📱 ショート動画' : '🎬 通常動画'))
             };
           });
+
+          // 動画の再生時間・アーカイブ有無・60秒以下ショート判定を一括取得して補完
+          items = await enrichYouTubeVideoItems(items);
+
           state.search.results = items;
           setSectionBanner(`YouTube「${query}」の検索結果 (${items.length}件)`, false);
           renderCardGrid(items, 'results');
@@ -2683,19 +2960,22 @@
               const vid = it.url.includes('/shorts/')
                 ? it.url.split('/shorts/')[1]?.split(/[?&]/)[0]
                 : it.url.split('v=')[1]?.split('&')[0];
-              const isLive = Boolean(it.duration === -1 || (it.isShort === false && it.uploaded === -1));
-              const isShort = Boolean(onlyShorts || it.isShort || it.url.includes('/shorts/') || detectIsShortText(it.title) || (it.duration > 0 && it.duration <= 60));
+              const isLive = Boolean(onlyLive || it.duration === -1 || (it.isShort === false && it.uploaded === -1));
+              const isShort = Boolean(!isLive && (onlyShorts || it.isShort || it.url.includes('/shorts/') || detectIsShortText(it.title) || (it.duration > 0 && it.duration <= 65)));
+              const durText = it.duration > 0 ? formatDurationSeconds(it.duration) : '';
               return {
                 platform: 'youtube',
                 type: 'video',
                 itemKind: 'video',
+                mediaBadgeType: isLive ? 'live' : (isShort ? 'short' : 'video'),
+                durationText: durText,
                 id: vid,
                 isShort: isShort,
+                isLive: isLive,
                 title: it.title || 'YouTube動画',
                 author: it.uploaderName || '',
                 thumbnail: it.thumbnail || `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
-                isLive: isLive || onlyLive,
-                viewers: isShort ? '📱 ショート' : (it.views ? `${Number(it.views).toLocaleString()} 回視聴` : 'YouTube')
+                viewers: isLive ? '🟠 LIVE配信中' : (isShort ? `📱 ショート (${durText || '60s'})` : `🎬 通常動画${durText ? ' · ' + durText : ''}`)
               };
             });
           if (items.length > 0) {
@@ -2720,14 +3000,15 @@
         platform: 'twitch',
         type: 'channel',
         itemKind: 'video',
+        mediaBadgeType: 'live',
         id: cleanId,
         channel: cleanId,
         isShort: false,
+        isLive: true,
         title: `Twitch: ${cleanId}`,
         author: `https://www.twitch.tv/${cleanId}`,
         thumbnail: '',
-        isLive: true,
-        viewers: 'Twitch チャンネル'
+        viewers: '🟠 Twitch LIVE / チャンネル'
       };
       state.search.results = [item];
       setSectionBanner(`Twitch「${query}」のダイレクト候補`, false);
@@ -2765,6 +3046,31 @@
       }
     }
 
+    // アイテムの種類（LIVE配信 / 配信予定 / 配信アーカイブ / ショート / 通常動画 / プレイリスト）に応じた見やすいバッジHTMLを生成
+    function buildMediaKindBadgeHtml(item) {
+      const isShort = Boolean(item.isShort || item.mediaBadgeType === 'short');
+      const isLive = Boolean(item.isLive || item.mediaBadgeType === 'live');
+      const isUpcoming = Boolean(item.isUpcoming || item.mediaBadgeType === 'upcoming');
+      const isArchive = Boolean(item.mediaBadgeType === 'archive');
+
+      if (item.type === 'playlist') {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white shadow">📂 プレイリスト</span>`;
+      }
+      if (isLive) {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500 text-white shadow flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white live-dot"></span>LIVE配信中</span>`;
+      }
+      if (isUpcoming) {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow">🗓️ 配信予定</span>`;
+      }
+      if (isShort) {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white shadow">📱 ショート</span>`;
+      }
+      if (isArchive) {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-800/95 text-zinc-100 border border-zinc-600 shadow">📡 配信アーカイブ</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-900/90 text-zinc-100 border border-zinc-700 shadow">🎬 動画</span>`;
+    }
+
     function renderCardGrid(items, mode) {
       state.search.lastRenderMode = mode;
       const area = document.getElementById('search-results-area');
@@ -2792,6 +3098,11 @@
         const isChannelItem = item.itemKind === 'channel';
         const isExpandableFolder = item.itemKind === 'playlist' || isChannelItem;
         const isShort = Boolean(item.isShort || detectIsShortText(item.title));
+        const isLive = Boolean(item.isLive || item.mediaBadgeType === 'live');
+        const kindBadgeHtml = buildMediaKindBadgeHtml(item);
+        const durationCornerHtml = (!isLive && item.durationText)
+          ? `<span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-black/85 text-white">${escapeHtml(item.durationText)}</span>`
+          : '';
 
         let slotButtonsHtml = '';
         for (let s = 0; s < state.multi.slotCount; s++) {
@@ -2804,8 +3115,11 @@
             </button>`;
         }
 
-        const badgeLabel = item.type === 'playlist' ? 'PLAYLIST' : (isShort ? '📱 SHORTS' : item.platform.toUpperCase());
         const card = document.createElement('div');
+        // LIVE配信中のカードはオレンジ枠線で目立たせる
+        const borderHighlight = isLive
+          ? 'border-orange-500 ring-1 ring-orange-500/30 hover:border-orange-400'
+          : 'theme-border hover:border-emerald-500/70';
 
         if (layout === 'list' || isChannelItem) {
           let thumbHtml = '';
@@ -2815,21 +3129,18 @@
               : `<div class="w-14 h-14 rounded-full btn-mono shrink-0 flex items-center justify-center text-xs font-bold">CH</div>`;
           } else {
             thumbHtml = item.thumbnail
-              ? `<div class="w-28 aspect-video bg-zinc-950 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+              ? `<div class="w-32 aspect-video bg-zinc-950 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative">
                    <img src="${escapeHtml(item.thumbnail)}" alt="" class="w-full h-full object-contain block" loading="lazy" />
+                   ${durationCornerHtml}
                  </div>`
-              : `<div class="w-28 aspect-video bg-zinc-900 rounded-lg shrink-0 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
+              : `<div class="w-32 aspect-video bg-zinc-900 rounded-lg shrink-0 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
           }
 
-          card.className = 'h-full theme-sub border theme-border rounded-xl p-2.5 flex items-center gap-3 shadow-sm hover:border-emerald-500/70 transition-all';
+          card.className = `h-full theme-sub border ${borderHighlight} rounded-xl p-2.5 flex items-center gap-3 shadow-sm transition-all`;
           card.innerHTML = `
             <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="relative cursor-pointer shrink-0">
               ${thumbHtml}
-              ${!isChannelItem ? `
-                <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[9px] font-bold text-white ${isShort ? 'bg-orange-500' : (item.platform === 'youtube' ? 'bg-zinc-900/90 border border-zinc-700' : 'bg-orange-600/90')}">
-                  ${badgeLabel}
-                </span>
-              ` : ''}
+              ${!isChannelItem ? `<div class="absolute top-1 left-1">${kindBadgeHtml}</div>` : ''}
             </div>
 
             <div class="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
@@ -2837,8 +3148,9 @@
                 <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="font-bold text-xs theme-text line-clamp-2 leading-snug cursor-pointer hover:text-emerald-500" title="${escapeHtml(item.title)}">
                   ${escapeHtml(item.title)}
                 </div>
-                <div class="text-[11px] theme-text-muted truncate mt-0.5">
-                  ${escapeHtml(item.author || '')} ${item.viewers ? '· ' + escapeHtml(item.viewers) : ''}
+                <div class="flex items-center gap-1.5 text-[11px] mt-0.5">
+                  <span class="theme-text-muted truncate">${escapeHtml(item.author || '')}</span>
+                  ${item.viewers ? `<span class="shrink-0 font-semibold ${isLive ? 'text-orange-500' : (isShort ? 'text-emerald-500' : 'theme-text-sub')}">· ${escapeHtml(item.viewers)}</span>` : ''}
                 </div>
               </div>
 
@@ -2867,29 +3179,27 @@
                </div>`
             : `<div class="w-full aspect-video bg-zinc-900 flex items-center justify-center text-white text-xs font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
 
-          card.className = 'h-full theme-sub border theme-border rounded-xl flex flex-col justify-between shadow-sm hover:border-emerald-500/70 transition-all overflow-hidden';
+          card.className = `h-full theme-sub border ${borderHighlight} rounded-xl flex flex-col justify-between shadow-sm transition-all overflow-hidden`;
           card.innerHTML = `
             <div>
               <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="relative cursor-pointer group overflow-hidden bg-zinc-950">
                 ${thumbHtml}
                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span class="px-2.5 py-1 btn-green rounded-lg text-xs font-bold shadow">
-                    ${isExpandableFolder ? '📂 動画一覧を開く' : (isShort ? '📱 ショート再生' : '▶ すぐ再生')}
+                  <span class="px-2.5 py-1 ${isLive ? 'btn-orange' : 'btn-green'} rounded-lg text-xs font-bold shadow">
+                    ${isExpandableFolder ? '📂 動画一覧を開く' : (isLive ? '🟠 LIVEを視聴' : (isShort ? '📱 ショート再生' : '▶ 動画を再生'))}
                   </span>
                 </div>
-                <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow ${isShort ? 'bg-orange-500' : (item.platform === 'youtube' ? 'bg-zinc-900/90 border border-zinc-700' : 'bg-orange-600/95')}">
-                  ${badgeLabel}
-                </span>
-                ${item.isLive ? '<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500 text-white shadow">🟠 LIVE</span>' : ''}
+                <div class="absolute top-1.5 left-1.5">${kindBadgeHtml}</div>
+                ${durationCornerHtml}
               </div>
 
               <div class="p-2 space-y-1">
                 <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="font-bold text-xs theme-text line-clamp-2 leading-snug cursor-pointer hover:text-emerald-500" title="${escapeHtml(item.title)}">
                   ${escapeHtml(item.title)}
                 </div>
-                <div class="flex items-center justify-between text-[11px] theme-text-muted pt-0.5">
-                  <span class="truncate">${escapeHtml(item.author || '')}</span>
-                  <span class="shrink-0 ml-1">${escapeHtml(item.viewers || '')}</span>
+                <div class="flex items-center justify-between gap-1 text-[11px] pt-0.5">
+                  <span class="theme-text-muted truncate">${escapeHtml(item.author || '')}</span>
+                  <span class="shrink-0 font-semibold ${isLive ? 'text-orange-500' : (isShort ? 'text-emerald-500' : 'theme-text-sub')}">${escapeHtml(item.viewers || '')}</span>
                 </div>
               </div>
             </div>
@@ -2940,24 +3250,30 @@
       selectCardItem(idx, target, mode);
     }
 
+    // 重要修正：awaitで通信待ちをせずクリック直後に即座にプレイヤーを生成・再生する
     function selectCardItem(idx, target, mode) {
       const list = getListByMode(mode);
       const item = list[idx];
       if (!item) return;
 
       const isShort = Boolean(item.isShort || detectIsShortText(item.title));
+      const isLive = Boolean(item.isLive || item.mediaBadgeType === 'live');
+      const isPlayablePlaylist = item.type === 'playlist' && item.itemKind !== 'playlist' && item.itemKind !== 'channel';
+
       const mediaObj = {
         platform: item.platform,
-        type: item.type === 'playlist' ? 'playlist' : (item.type || 'video'),
+        type: isPlayablePlaylist ? 'playlist' : (item.type === 'playlist' ? 'video' : (item.type || 'video')),
         id: item.id,
-        listId: item.listId || null,
+        listId: isPlayablePlaylist ? item.id : null,
         channel: item.channel || null,
-        isShort: isShort
+        isShort: isShort,
+        isLive: isLive,
+        mediaBadgeType: item.mediaBadgeType || (isLive ? 'live' : (isShort ? 'short' : 'video'))
       };
 
-      recordWatchHistory(mediaObj, item.title, item.author, item.thumbnail);
-      applyMediaToTarget(mediaObj, target);
       closeSearchModal();
+      applyMediaToTarget(mediaObj, target);
+      recordWatchHistory(mediaObj, item.title, item.author, item.thumbnail);
     }
 
     function applyMediaToTarget(mediaObj, target) {
@@ -2965,12 +3281,13 @@
       if (target === 'single') {
         if (state.viewMode !== 'single') {
           state.single.media = mediaObj;
+          state.single.forceChatMode = null;
           state.single.rawUrl = stdUrl;
           state.single.showChat = !mediaObj.isShort;
           document.getElementById('single-url-input').value = stdUrl;
           setViewMode('single');
         } else {
-          applySingleMediaWithDefaults(mediaObj, stdUrl);
+          applySingleMediaImmediately(mediaObj, stdUrl);
         }
       } else {
         const slotIdx = typeof target === 'number' ? target : 0;
@@ -2982,7 +3299,7 @@
         slot.rawUrl = stdUrl;
         slot.minimized = false;
         slot.customVideoWidthPx = null;
-        slot.showChat = !mediaObj.isShort; // ショート動画はデフォルトでコメントOFF
+        slot.showChat = !mediaObj.isShort;
 
         if (state.viewMode !== 'multi') {
           setViewMode('multi');
