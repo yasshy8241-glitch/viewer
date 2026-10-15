@@ -243,11 +243,31 @@
           </form>
         </div>
 
+        <div id="subs-folder-toolbar" class="hidden p-2 rounded-xl theme-sub border theme-border space-y-2 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <div class="flex items-center theme-panel p-0.5 rounded-lg border theme-border">
+                <button id="btn-subs-view-channels" type="button" onclick="setSubsViewMode('channels')" class="px-3 py-1 rounded-md font-bold btn-mono shadow-sm transition-colors">📺 チャンネル一覧</button>
+                <button id="btn-subs-view-folders" type="button" onclick="setSubsViewMode('folders')" class="px-3 py-1 rounded-md font-medium theme-text-sub hover:opacity-80 transition-colors">📁 フォルダ一覧</button>
+              </div>
+              <input id="subs-filter-input" type="text" oninput="handleSubsFilterInput(this.value)" placeholder="🔍 登録CH名を絞り込み..." class="theme-input border rounded-lg px-2.5 py-1 text-xs w-40 sm:w-52" />
+            </div>
+
+            <form onsubmit="handleCreateSubFolder(event)" class="flex items-center gap-1.5 flex-1 min-w-[220px] max-w-sm justify-end">
+              <input id="new-folder-name-input" type="text" placeholder="新規フォルダ名 (例: 配信者, ガジェット)" class="flex-1 theme-input border rounded-lg px-2.5 py-1 text-xs" />
+              <button type="submit" class="px-3 py-1 btn-green rounded-lg font-bold shrink-0 shadow-sm">➕ フォルダ作成</button>
+            </form>
+          </div>
+
+          <div id="subs-folder-pills-bar" class="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-0.5"></div>
+        </div>
+
         <div id="channel-detail-toolbar" class="hidden p-2 rounded-xl theme-sub border theme-border space-y-2 text-xs">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <img id="channel-detail-avatar" src="https://placehold.co/40x40/18181b/10b981?text=CH" alt="" class="w-7 h-7 rounded-full object-cover bg-zinc-800 border theme-border shrink-0" />
               <span id="channel-detail-name" class="font-bold text-xs sm:text-sm theme-text truncate">チャンネル名</span>
+              <button id="btn-channel-detail-folder" type="button" onclick="openFolderModalForActiveChannel()" class="px-2.5 py-0.5 rounded badge-green hover:bg-emerald-600 hover:text-white border text-[11px] font-bold shrink-0">📁 フォルダ設定</button>
               <button type="button" onclick="setSearchTab('subs')" class="px-2 py-0.5 rounded theme-panel hover:bg-orange-500 hover:text-white border text-[11px] font-medium shrink-0">📺 登録CH一覧へ</button>
             </div>
             <form onsubmit="handleChannelSearchSubmit(event)" class="flex items-center gap-1 flex-1 min-w-[220px] max-w-md">
@@ -337,6 +357,23 @@
         <div id="pagination-info" class="text-[11px] theme-text-sub font-medium"></div>
         <div id="pagination-buttons" class="flex flex-wrap items-center gap-1"></div>
       </div>
+
+      <div id="folder-assign-modal" class="hidden absolute inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3">
+        <div class="theme-panel border theme-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[84vh] flex flex-col overflow-hidden">
+          <div class="flex items-center justify-between gap-2 px-4 py-2.5 theme-sub border-b theme-border shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-base">📁</span>
+              <h3 id="folder-modal-title" class="font-bold text-xs sm:text-sm theme-text truncate">フォルダ設定</h3>
+            </div>
+            <button type="button" onclick="closeFolderAssignModal()" class="w-7 h-7 flex items-center justify-center rounded-lg theme-panel hover:text-orange-500 border text-xs font-bold">✕</button>
+          </div>
+          <div id="folder-modal-Subheader" class="px-4 py-2 border-b theme-border theme-sub/50 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0"></div>
+          <div id="folder-modal-body" class="flex-1 min-h-0 overflow-y-auto p-3 space-y-2 text-xs"></div>
+          <div class="px-4 py-2.5 theme-sub border-t theme-border flex items-center justify-end gap-2 shrink-0">
+            <button type="button" onclick="closeFolderAssignModal()" class="px-4 py-1.5 btn-green rounded-lg text-xs font-bold shadow-sm">完了して閉じる</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -350,8 +387,15 @@
       MULTI_COUNT: 'stream_vertical_studio_multi_count',
       CARD_LAYOUT: 'stream_vertical_studio_card_layout',
       OAUTH: 'stream_vertical_studio_oauth_session',
-      CACHE: 'stream_vertical_studio_yt_library_cache_v6'
+      CACHE: 'stream_vertical_studio_yt_library_cache_v6',
+      SUB_FOLDERS: 'stream_vertical_studio_sub_folders_v1'
     };
+
+    const DEFAULT_SUB_FOLDERS = [
+      { id: 'folder_streamers', name: '配信者', icon: '🎙️', channelIds: [] },
+      { id: 'folder_gadgets', name: 'ガジェット', icon: '📱', channelIds: [] },
+      { id: 'folder_shadowverse', name: 'シャドバ', icon: '🃏', channelIds: [] }
+    ];
 
     const embedDomain = window.location.hostname || 'localhost';
     let isHandlingPopState = false;
@@ -397,6 +441,8 @@
         ytApiKey: '', googleClientId: '', oauthToken: null, oauthExpiresAt: 0,
         hasEverConnected: false, tokenClient: null,
         libraryCache: { mine: [], liked: [], subs: [] },
+        subFolders: [], subsViewMode: 'channels', activeFolderId: null, subsFilterQuery: '',
+        folderModalContext: null, pendingDeleteFolderId: null, renamingFolderId: null,
         activeChannel: null, activePlaylistContext: null,
         scrollTop: 0, isLoadingView: false,
         pagination: {
@@ -409,6 +455,485 @@
         }
       }
     };
+
+    function saveSubFoldersToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.SUB_FOLDERS, JSON.stringify(state.search.subFolders));
+      } catch (e) {}
+    }
+
+    function normalizeChannelId(rawId) {
+      if (!rawId) return '';
+      const s = String(rawId).trim();
+      return s.startsWith('UU') ? ('UC' + s.substring(2)) : s;
+    }
+
+    function getFoldersForChannel(channelId) {
+      const normId = normalizeChannelId(channelId);
+      if (!normId) return [];
+      return (state.search.subFolders || []).filter((f) => Array.isArray(f.channelIds) && f.channelIds.includes(normId));
+    }
+
+    function isChannelInFolder(channelId, folderId) {
+      const normId = normalizeChannelId(channelId);
+      const folder = (state.search.subFolders || []).find((f) => f.id === folderId);
+      return Boolean(folder && Array.isArray(folder.channelIds) && folder.channelIds.includes(normId));
+    }
+
+    function pickFolderIcon(name) {
+      const n = (name || '').toLowerCase();
+      if (/配信|ストリーマー|vtuber|実況|live/.test(n)) return '🎙️';
+      if (/ガジェット|pc|スマホ|tech|デバイス/.test(n)) return '📱';
+      if (/シャドバ|shadowverse|カード|tcg/.test(n)) return '🃏';
+      if (/音楽|music|歌|bgm/.test(n)) return '🎵';
+      if (/ゲーム|game|fps|apex|valorant/.test(n)) return '🎮';
+      return '📁';
+    }
+
+    function handleCreateSubFolder(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('new-folder-name-input');
+      const name = (input?.value || '').trim();
+      if (!name) {
+        showToast('フォルダ名を入力してください', 'error');
+        return;
+      }
+      if (state.search.subFolders.some((f) => f.name === name)) {
+        showToast(`フォルダ「${name}」は既に存在します`, 'error');
+        return;
+      }
+      const newFolder = {
+        id: 'folder_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name,
+        icon: pickFolderIcon(name),
+        channelIds: []
+      };
+      state.search.subFolders.push(newFolder);
+      saveSubFoldersToStorage();
+      if (input) input.value = '';
+      showToast(`📁 フォルダ「${name}」を作成しました`);
+      renderSubsView();
+    }
+
+    function toggleChannelInFolder(channelId, folderId, event = null) {
+      if (event) event.stopPropagation();
+      const normId = normalizeChannelId(channelId);
+      if (!normId) return;
+      const folder = state.search.subFolders.find((f) => f.id === folderId);
+      if (!folder) return;
+      if (!Array.isArray(folder.channelIds)) folder.channelIds = [];
+
+      const idx = folder.channelIds.indexOf(normId);
+      if (idx !== -1) {
+        folder.channelIds.splice(idx, 1);
+        showToast(`「${folder.name}」から解除しました`);
+      } else {
+        folder.channelIds.push(normId);
+        showToast(`📁「${folder.name}」に追加しました`);
+      }
+      saveSubFoldersToStorage();
+
+      if (state.search.tab === 'subs' && !state.search.activeChannel) {
+        const currentScroll = document.getElementById('search-results-area')?.scrollTop || 0;
+        renderSubsView(currentScroll);
+      }
+      if (!document.getElementById('folder-assign-modal')?.classList.contains('hidden')) {
+        renderFolderAssignModalContent();
+      }
+      updateActiveChannelDetailFolderButton();
+    }
+
+    function setSubsViewMode(mode, folderId = undefined, pushHistory = true) {
+      if (pushHistory) syncCurrentSnapshotState();
+      state.search.subsViewMode = mode === 'folders' ? 'folders' : 'channels';
+      if (folderId !== undefined) {
+        state.search.activeFolderId = folderId;
+      } else if (state.search.subsViewMode === 'folders') {
+        state.search.activeFolderId = null;
+      }
+      state.search.pagination.currentPage = 1;
+      state.search.scrollTop = 0;
+      renderSubsView(0);
+      if (pushHistory) {
+        pushAppHistoryState(`subsView:${state.search.subsViewMode}:${state.search.activeFolderId || 'all'}`);
+      }
+    }
+
+    function selectSubsFolderFilter(folderId) {
+      syncCurrentSnapshotState();
+      state.search.activeFolderId = folderId;
+      if (folderId !== null) {
+        state.search.subsViewMode = 'channels';
+      }
+      state.search.pagination.currentPage = 1;
+      state.search.scrollTop = 0;
+      renderSubsView(0);
+      pushAppHistoryState(`subsFolder:${folderId || 'all'}`);
+    }
+
+    function handleSubsFilterInput(val) {
+      state.search.subsFilterQuery = (val || '').trim();
+      state.search.pagination.currentPage = 1;
+      renderSubsView(0);
+    }
+
+    function startRenameSubFolder(folderId, event) {
+      if (event) event.stopPropagation();
+      state.search.renamingFolderId = folderId;
+      renderSubsView(state.search.scrollTop);
+    }
+
+    function confirmRenameSubFolder(folderId, event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      const input = document.getElementById(`rename-folder-input-${folderId}`);
+      const newName = (input?.value || '').trim();
+      if (!newName) {
+        showToast('新しいフォルダ名を入力してください', 'error');
+        return;
+      }
+      const folder = state.search.subFolders.find((f) => f.id === folderId);
+      if (folder) {
+        folder.name = newName;
+        folder.icon = pickFolderIcon(newName);
+        saveSubFoldersToStorage();
+        showToast(`フォルダ名を「${newName}」に変更しました`);
+      }
+      state.search.renamingFolderId = null;
+      renderSubsView(state.search.scrollTop);
+    }
+
+    function cancelRenameSubFolder(event) {
+      if (event) event.stopPropagation();
+      state.search.renamingFolderId = null;
+      renderSubsView(state.search.scrollTop);
+    }
+
+    function requestDeleteSubFolder(folderId, event) {
+      if (event) event.stopPropagation();
+      if (state.search.pendingDeleteFolderId === folderId) {
+        const target = state.search.subFolders.find((f) => f.id === folderId);
+        state.search.subFolders = state.search.subFolders.filter((f) => f.id !== folderId);
+        state.search.pendingDeleteFolderId = null;
+        if (state.search.activeFolderId === folderId) state.search.activeFolderId = null;
+        saveSubFoldersToStorage();
+        showToast(`フォルダ「${target?.name || ''}」を削除しました`);
+        renderSubsView(state.search.scrollTop);
+      } else {
+        state.search.pendingDeleteFolderId = folderId;
+        renderSubsView(state.search.scrollTop);
+        setTimeout(() => {
+          if (state.search.pendingDeleteFolderId === folderId) {
+            state.search.pendingDeleteFolderId = null;
+            if (state.search.tab === 'subs' && !state.search.activeChannel) renderSubsView(state.search.scrollTop);
+          }
+        }, 4000);
+      }
+    }
+
+    function getUnassignedSubsChannels(allSubs) {
+      const assignedSet = new Set();
+      (state.search.subFolders || []).forEach((f) => {
+        (f.channelIds || []).forEach((cid) => assignedSet.add(normalizeChannelId(cid)));
+      });
+      return (allSubs || []).filter((ch) => !assignedSet.has(normalizeChannelId(ch.channelId || ch.id)));
+    }
+
+    function updateSubsFolderToolbarUI() {
+      const allSubs = state.search.libraryCache.subs || [];
+      const folders = state.search.subFolders || [];
+      const isFoldersView = state.search.subsViewMode === 'folders' && !state.search.activeFolderId;
+
+      const btnCh = document.getElementById('btn-subs-view-channels');
+      const btnFl = document.getElementById('btn-subs-view-folders');
+      if (btnCh && btnFl) {
+        btnCh.className = 'px-3 py-1 rounded-md text-xs transition-colors ' + (!isFoldersView ? 'font-bold btn-mono shadow-sm' : 'font-medium theme-text-sub hover:opacity-80');
+        btnCh.textContent = `📺 チャンネル一覧 (${allSubs.length})`;
+        btnFl.className = 'px-3 py-1 rounded-md text-xs transition-colors ' + (isFoldersView ? 'font-bold btn-green shadow-sm' : 'font-medium theme-text-sub hover:opacity-80');
+        btnFl.textContent = `📁 フォルダ一覧 (${folders.length})`;
+      }
+
+      const pillsBar = document.getElementById('subs-folder-pills-bar');
+      if (!pillsBar) return;
+
+      const activeFid = state.search.activeFolderId;
+      const unassignedCount = getUnassignedSubsChannels(allSubs).length;
+
+      let pillsHtml = `
+        <button type="button" onclick="setSubsViewMode('folders', null)" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 transition-colors ${isFoldersView ? 'btn-green font-bold shadow-sm' : 'theme-panel theme-text-sub hover:opacity-80'}">
+          📁 フォルダ一覧 (${folders.length})
+        </button>
+        <button type="button" onclick="selectSubsFolderFilter(null)" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 transition-colors ${!isFoldersView && activeFid === null ? 'btn-mono font-bold shadow-sm' : 'theme-panel theme-text-sub hover:opacity-80'}">
+          📺 すべて (${allSubs.length})
+        </button>
+      `;
+
+      folders.forEach((f) => {
+        const count = allSubs.filter((ch) => (f.channelIds || []).includes(normalizeChannelId(ch.channelId || ch.id))).length;
+        const isSelected = !isFoldersView && activeFid === f.id;
+        pillsHtml += `
+          <button type="button" onclick="selectSubsFolderFilter('${escapeHtml(f.id)}')" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 flex items-center gap-1 transition-colors ${isSelected ? 'btn-orange font-bold shadow-sm' : 'theme-panel theme-text-sub hover:border-emerald-500/60'}">
+            <span>${escapeHtml(f.icon || '📁')}</span>
+            <span>${escapeHtml(f.name)}</span>
+            <span class="opacity-80">(${count})</span>
+          </button>
+        `;
+      });
+
+      pillsHtml += `
+        <button type="button" onclick="selectSubsFolderFilter('__unassigned__')" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 transition-colors ${!isFoldersView && activeFid === '__unassigned__' ? 'btn-mono font-bold shadow-sm' : 'theme-panel theme-text-muted hover:opacity-80'}">
+          🏷️ 未分類 (${unassignedCount})
+        </button>
+      `;
+
+      if (activeFid && activeFid !== '__unassigned__') {
+        const activeFolderObj = folders.find((f) => f.id === activeFid);
+        if (activeFolderObj) {
+          pillsHtml += `
+            <button type="button" onclick="openBulkAssignModalForFolder('${escapeHtml(activeFolderObj.id)}')" class="ml-auto px-2.5 py-1 rounded-lg badge-green hover:bg-emerald-600 hover:text-white border text-[11px] font-bold shrink-0 shadow-sm">
+              ➕ 「${escapeHtml(activeFolderObj.name)}」にCHを追加・整理
+            </button>
+          `;
+        }
+      }
+
+      pillsBar.innerHTML = pillsHtml;
+    }
+
+    function renderSubsView(restoreScrollTop = null) {
+      const allSubs = state.search.libraryCache.subs || [];
+      const folders = state.search.subFolders || [];
+      const q = (state.search.subsFilterQuery || '').toLowerCase();
+
+      updateSubsFolderToolbarUI();
+
+      // 1. フォルダ一覧モード（特定フォルダ未選択時）
+      if (state.search.subsViewMode === 'folders' && !state.search.activeFolderId) {
+        const folderCards = folders
+          .filter((f) => !q || f.name.toLowerCase().includes(q))
+          .map((f) => {
+            const matchedChannels = allSubs.filter((ch) => (f.channelIds || []).includes(normalizeChannelId(ch.channelId || ch.id)));
+            return {
+              platform: 'youtube',
+              type: 'folder',
+              itemKind: 'folder',
+              folderId: f.id,
+              title: f.name,
+              icon: f.icon || '📁',
+              channelCount: matchedChannels.length,
+              previewChannels: matchedChannels.slice(0, 6)
+            };
+          });
+
+        const unassigned = getUnassignedSubsChannels(allSubs);
+        if (!q || '未分類'.includes(q)) {
+          folderCards.push({
+            platform: 'youtube',
+            type: 'folder',
+            itemKind: 'folder',
+            folderId: '__unassigned__',
+            title: '未分類のチャンネル',
+            icon: '🏷️',
+            channelCount: unassigned.length,
+            previewChannels: unassigned.slice(0, 6),
+            isSystemFolder: true
+          });
+        }
+
+        state.search.results = folderCards;
+        setSectionBanner(`📁 登録チャンネル フォルダ一覧 (${folders.length}フォルダ / 全${allSubs.length}CH)`);
+        renderCardGrid(folderCards, 'playlists', restoreScrollTop !== null ? restoreScrollTop : 0);
+        return;
+      }
+
+      // 2. チャンネル一覧モード（すべて or 特定フォルダ内 or 未分類）
+      let filteredSubs = [...allSubs];
+      let bannerTitle = `📺 登録チャンネル一覧 (全 ${allSubs.length} 件)`;
+
+      if (state.search.activeFolderId === '__unassigned__') {
+        filteredSubs = getUnassignedSubsChannels(allSubs);
+        bannerTitle = `🏷️ 未分類の登録チャンネル (${filteredSubs.length}件)`;
+      } else if (state.search.activeFolderId) {
+        const folder = folders.find((f) => f.id === state.search.activeFolderId);
+        if (folder) {
+          const idSet = new Set((folder.channelIds || []).map((id) => normalizeChannelId(id)));
+          filteredSubs = allSubs.filter((ch) => idSet.has(normalizeChannelId(ch.channelId || ch.id)));
+          bannerTitle = `${folder.icon || '📁'} フォルダ「${folder.name}」のチャンネル (${filteredSubs.length}件)`;
+        }
+      }
+
+      if (q) {
+        filteredSubs = filteredSubs.filter((ch) =>
+          (ch.title || '').toLowerCase().includes(q) || (ch.author || '').toLowerCase().includes(q)
+        );
+        bannerTitle += ` · 検索「${state.search.subsFilterQuery}」(${filteredSubs.length}件)`;
+      }
+
+      state.search.results = filteredSubs;
+      setSectionBanner(bannerTitle);
+      renderCardGrid(filteredSubs, 'playlists', restoreScrollTop !== null ? restoreScrollTop : state.search.scrollTop);
+    }
+
+    function openFolderModalForChannel(channelId, channelTitle = '', channelThumb = '', event = null) {
+      if (event) event.stopPropagation();
+      const normId = normalizeChannelId(channelId);
+      if (!normId) return;
+      state.search.folderModalContext = {
+        mode: 'channel_to_folders',
+        channelId: normId,
+        channelTitle: channelTitle || 'チャンネル',
+        channelThumb: channelThumb || ''
+      };
+      document.getElementById('folder-assign-modal')?.classList.remove('hidden');
+      renderFolderAssignModalContent();
+    }
+
+    function openFolderModalForActiveChannel() {
+      const ch = state.search.activeChannel;
+      if (!ch) return;
+      openFolderModalForChannel(ch.channelId, ch.title, ch.thumbnail);
+    }
+
+    function updateActiveChannelDetailFolderButton() {
+      const btn = document.getElementById('btn-channel-detail-folder');
+      const ch = state.search.activeChannel;
+      if (!btn || !ch) return;
+      const assigned = getFoldersForChannel(ch.channelId);
+      if (assigned.length > 0) {
+        btn.textContent = `📁 ${assigned.map((f) => f.name).join(' / ')}`;
+        btn.className = 'px-2.5 py-0.5 rounded badge-orange hover:bg-orange-500 hover:text-white border text-[11px] font-bold shrink-0 max-w-[200px] truncate';
+      } else {
+        btn.textContent = '📁 フォルダ設定';
+        btn.className = 'px-2.5 py-0.5 rounded badge-green hover:bg-emerald-600 hover:text-white border text-[11px] font-bold shrink-0';
+      }
+    }
+
+    function openBulkAssignModalForFolder(folderId, event = null) {
+      if (event) event.stopPropagation();
+      const folder = state.search.subFolders.find((f) => f.id === folderId);
+      if (!folder) return;
+      state.search.folderModalContext = {
+        mode: 'folder_to_channels',
+        folderId: folder.id,
+        filterText: ''
+      };
+      document.getElementById('folder-assign-modal')?.classList.remove('hidden');
+      renderFolderAssignModalContent();
+    }
+
+    function closeFolderAssignModal() {
+      document.getElementById('folder-assign-modal')?.classList.add('hidden');
+      state.search.folderModalContext = null;
+    }
+
+    function handleFolderModalSearchInput(val) {
+      if (!state.search.folderModalContext) return;
+      state.search.folderModalContext.filterText = val || '';
+      renderFolderAssignModalContent(false);
+    }
+
+    function renderFolderAssignModalContent(rebuildSubheader = true) {
+      const ctx = state.search.folderModalContext;
+      const titleEl = document.getElementById('folder-modal-title');
+      const subEl = document.getElementById('folder-modal-Subheader');
+      const bodyEl = document.getElementById('folder-modal-body');
+      if (!ctx || !titleEl || !subEl || !bodyEl) return;
+
+      if (ctx.mode === 'channel_to_folders') {
+        titleEl.textContent = `「${ctx.channelTitle}」のフォルダ振り分け`;
+        if (rebuildSubheader) {
+          subEl.innerHTML = `
+            <span class="theme-text-sub">所属させたいフォルダをクリックして選択（複数選択可）：</span>
+            <form onsubmit="handleQuickFolderCreateInModal(event)" class="flex items-center gap-1">
+              <input id="modal-quick-folder-input" type="text" placeholder="新規フォルダ名..." class="theme-input border rounded px-2 py-1 text-xs w-36" />
+              <button type="submit" class="px-2.5 py-1 btn-green rounded font-bold text-xs">➕ 作成</button>
+            </form>
+          `;
+        }
+        const folders = state.search.subFolders || [];
+        if (folders.length === 0) {
+          bodyEl.innerHTML = `<div class="p-6 text-center theme-text-muted">フォルダがありません。上の入力欄から作成してください。</div>`;
+          return;
+        }
+        bodyEl.innerHTML = folders.map((f) => {
+          const checked = isChannelInFolder(ctx.channelId, f.id);
+          return `
+            <div onclick="toggleChannelInFolder('${escapeHtml(ctx.channelId)}', '${escapeHtml(f.id)}')" class="p-3 rounded-xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${checked ? 'badge-green border-emerald-500 font-bold shadow-sm' : 'theme-sub theme-border hover:border-emerald-500/50'}">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="text-base">${escapeHtml(f.icon || '📁')}</span>
+                <span class="text-xs sm:text-sm theme-text truncate">${escapeHtml(f.name)}</span>
+                <span class="text-[11px] theme-text-muted">(${(f.channelIds || []).length} CH)</span>
+              </div>
+              <span class="px-3 py-1 rounded-lg text-xs font-bold ${checked ? 'btn-green' : 'theme-panel border theme-border theme-text-sub'}">
+                ${checked ? '✓ 所属中' : '＋ 追加する'}
+              </span>
+            </div>
+          `;
+        }).join('');
+        return;
+      }
+
+      if (ctx.mode === 'folder_to_channels') {
+        const folder = state.search.subFolders.find((f) => f.id === ctx.folderId);
+        if (!folder) return;
+        const allSubs = state.search.libraryCache.subs || [];
+        titleEl.textContent = `${folder.icon || '📁'} フォルダ「${folder.name}」のチャンネル一括選択 (${(folder.channelIds || []).length}件所属中)`;
+
+        if (rebuildSubheader) {
+          subEl.innerHTML = `
+            <input type="text" value="${escapeHtml(ctx.filterText || '')}" oninput="handleFolderModalSearchInput(this.value)" placeholder="🔍 登録チャンネル名で検索して絞り込み..." class="flex-1 theme-input border rounded-lg px-3 py-1.5 text-xs" />
+            <span class="text-[11px] theme-text-muted shrink-0">クリックで追加/解除</span>
+          `;
+        }
+
+        const q = (ctx.filterText || '').trim().toLowerCase();
+        const list = allSubs.filter((ch) => !q || (ch.title || '').toLowerCase().includes(q) || (ch.author || '').toLowerCase().includes(q));
+
+        if (list.length === 0) {
+          bodyEl.innerHTML = `<div class="p-6 text-center theme-text-muted">一致する登録チャンネルがありません。</div>`;
+          return;
+        }
+
+        bodyEl.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">` + list.map((ch) => {
+          const cid = normalizeChannelId(ch.channelId || ch.id);
+          const checked = isChannelInFolder(cid, folder.id);
+          return `
+            <div onclick="toggleChannelInFolder('${escapeHtml(cid)}', '${escapeHtml(folder.id)}')" class="p-2 rounded-xl border flex items-center gap-2.5 cursor-pointer transition-all ${checked ? 'badge-green border-emerald-500 font-bold shadow-sm' : 'theme-sub theme-border hover:border-emerald-500/50'}">
+              <img src="${escapeHtml(ch.thumbnail || 'https://placehold.co/40x40/18181b/10b981?text=CH')}" class="w-9 h-9 rounded-full object-cover bg-zinc-800 shrink-0" loading="lazy" />
+              <div class="flex-1 min-w-0">
+                <div class="text-xs theme-text truncate">${escapeHtml(ch.title)}</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold shrink-0 ${checked ? 'btn-green' : 'theme-panel border theme-border theme-text-muted'}">
+                ${checked ? '✓ 所属' : '＋ 追加'}
+              </span>
+            </div>
+          `;
+        }).join('') + `</div>`;
+      }
+    }
+
+    function handleQuickFolderCreateInModal(e) {
+      e.preventDefault();
+      const input = document.getElementById('modal-quick-folder-input');
+      const name = (input?.value || '').trim();
+      if (!name) return;
+      if (!state.search.subFolders.some((f) => f.name === name)) {
+        const nf = {
+          id: 'folder_' + Date.now(),
+          name,
+          icon: pickFolderIcon(name),
+          channelIds: state.search.folderModalContext?.channelId ? [state.search.folderModalContext.channelId] : []
+        };
+        state.search.subFolders.push(nf);
+        saveSubFoldersToStorage();
+        showToast(`📁「${name}」を作成して追加しました`);
+      }
+      if (input) input.value = '';
+      renderFolderAssignModalContent(true);
+      if (state.search.tab === 'subs' && !state.search.activeChannel) renderSubsView(state.search.scrollTop);
+    }
 
     function scrollResultsToTop() {
       const area = document.getElementById('search-results-area');
@@ -1054,6 +1579,9 @@
         searchTab: state.search.tab,
         ytFilter: state.search.ytFilter,
         searchQuery: qInput ? qInput.value : '',
+        subsViewMode: state.search.subsViewMode,
+        activeFolderId: state.search.activeFolderId,
+        subsFilterQuery: state.search.subsFilterQuery,
         sectionTitle: document.getElementById('current-section-title')?.textContent || '',
         results: state.search.results ? [...state.search.results] : [],
         lastRenderMode: state.search.lastRenderMode,
@@ -1099,27 +1627,6 @@
       backBtn.classList.toggle('hidden', !show);
     }
 
-    function navigateBackInApp() {
-      if (currentNavIndex > 0) {
-        try {
-          window.history.back();
-          return;
-        } catch (e) {}
-      }
-      if (state.search.activePlaylistContext) {
-        state.search.activePlaylistContext = null;
-        document.getElementById('playlist-detail-toolbar').classList.add('hidden');
-        if (state.search.activeChannel) renderActiveChannelContent(false);
-        else fetchMyYouTubePlaylists(false);
-        return;
-      }
-      if (state.search.activeChannel) {
-        state.search.activeChannel = null;
-        document.getElementById('channel-detail-toolbar').classList.add('hidden');
-        fetchMySubscriptions(false, true);
-      }
-    }
-
     function updateYtFilterButtonsUI() {
       const filter = state.search.ytFilter || 'all';
       const btnMap = [
@@ -1154,6 +1661,11 @@
           modal.classList.remove('hidden');
           state.search.tab = snap.searchTab || 'youtube';
           state.search.ytFilter = snap.ytFilter || 'all';
+          state.search.subsViewMode = snap.subsViewMode || 'channels';
+          state.search.activeFolderId = snap.activeFolderId !== undefined ? snap.activeFolderId : null;
+          state.search.subsFilterQuery = snap.subsFilterQuery || '';
+          const subsFilterInput = document.getElementById('subs-filter-input');
+          if (subsFilterInput) subsFilterInput.value = state.search.subsFilterQuery;
           state.search.activeChannel = snap.activeChannel ? JSON.parse(JSON.stringify(snap.activeChannel)) : null;
           state.search.activePlaylistContext = snap.activePlaylistContext ? JSON.parse(JSON.stringify(snap.activePlaylistContext)) : null;
           state.search.results = snap.results ? [...snap.results] : [];
@@ -1172,12 +1684,16 @@
           }
           updateYtFilterButtonsUI();
           syncModalToolbarsByState();
+          if (state.search.tab === 'subs' && !state.search.activeChannel) {
+            updateSubsFolderToolbarUI();
+          }
           if (state.search.activeChannel) {
             document.getElementById('channel-detail-avatar').src = state.search.activeChannel.thumbnail || 'https://placehold.co/40x40/18181b/10b981?text=CH';
             document.getElementById('channel-detail-name').textContent = state.search.activeChannel.title || 'チャンネル';
             document.getElementById('channel-search-input').value = state.search.activeChannel.query || '';
             document.getElementById('btn-channel-search-clear').classList.toggle('hidden', !state.search.activeChannel.query);
             updateChannelCategoryTabsUI();
+            updateActiveChannelDetailFolderButton();
           }
           setSectionBanner(snap.sectionTitle || '一覧');
           if (state.search.tab !== 'settings') {
@@ -1190,6 +1706,32 @@
         updateBackButtonVisibility();
       } finally {
         isHandlingPopState = false;
+      }
+    }
+
+    function navigateBackInApp() {
+      if (currentNavIndex > 0) {
+        try {
+          window.history.back();
+          return;
+        } catch (e) {}
+      }
+      if (state.search.activePlaylistContext) {
+        state.search.activePlaylistContext = null;
+        document.getElementById('playlist-detail-toolbar').classList.add('hidden');
+        if (state.search.activeChannel) renderActiveChannelContent(false);
+        else fetchMyYouTubePlaylists(false);
+        return;
+      }
+      if (state.search.activeChannel) {
+        state.search.activeChannel = null;
+        document.getElementById('channel-detail-toolbar').classList.add('hidden');
+        syncModalToolbarsByState();
+        renderSubsView();
+        return;
+      }
+      if (state.search.tab === 'subs' && state.search.activeFolderId) {
+        setSubsViewMode('folders', null);
       }
     }
 
@@ -1455,6 +1997,18 @@
               subs: parsed.subs || []
             };
           }
+        }
+        const savedFolders = localStorage.getItem(STORAGE_KEYS.SUB_FOLDERS);
+        if (savedFolders) {
+          const parsedFolders = JSON.parse(savedFolders);
+          if (Array.isArray(parsedFolders) && parsedFolders.length > 0) {
+            state.search.subFolders = parsedFolders;
+          } else {
+            state.search.subFolders = JSON.parse(JSON.stringify(DEFAULT_SUB_FOLDERS));
+          }
+        } else {
+          state.search.subFolders = JSON.parse(JSON.stringify(DEFAULT_SUB_FOLDERS));
+          saveSubFoldersToStorage();
         }
         const savedSession = localStorage.getItem(STORAGE_KEYS.OAUTH);
         if (savedSession) {
@@ -2838,29 +3392,28 @@
       state.search.activeChannel = null; state.search.activePlaylistContext = null;
       document.getElementById('channel-detail-toolbar').classList.add('hidden');
       document.getElementById('playlist-detail-toolbar').classList.add('hidden');
+      syncModalToolbarsByState();
 
       const cachedSubs = state.search.libraryCache.subs || [];
 
       if (!isOAuthTokenValid()) {
         if (!forceRefresh && cachedSubs.length > 0) {
-          state.search.results = cachedSubs;
           resetPagination('subs', '', '');
-          const notice = cachedSubs.length <= 50 ? ' ※「🔄 全件再取得」で51件目以降もすべて読み込めます' : '';
-          setSectionBanner(`📺 登録チャンネル一覧 (${cachedSubs.length}件)${notice}`);
-          renderCardGrid(state.search.results, 'playlists');
+          renderSubsView(0);
           return;
         }
         if (forceRefresh) handleGoogleAuthClick(true, () => fetchMySubscriptions(true));
-        else showSearchAreaMessage('右上の「🔗 YouTubeアカウント連携」または「🔄 全件再取得」を押すと、登録チャンネル全件が表示されます。', '', false);
+        else {
+          updateSubsFolderToolbarUI();
+          showSearchAreaMessage('右上の「🔗 YouTubeアカウント連携」または「🔄 全件再取得」を押すと、登録チャンネル全件が表示されます。', '', false);
+        }
         return;
       }
 
       // トークンが有効で、かつ以前の50件制限時のキャッシュしか無い場合は自動的にAPIから全件取得する
       if (!forceRefresh && !appendNextPage && cachedSubs.length > 50) {
-        state.search.results = cachedSubs;
         resetPagination('subs', '', '');
-        setSectionBanner(`📺 登録チャンネル一覧 (${cachedSubs.length}件)`);
-        renderCardGrid(state.search.results, 'playlists');
+        renderSubsView(0);
         return;
       }
 
@@ -2871,7 +3424,7 @@
       }
 
       try {
-        let collected = appendNextPage ? [...state.search.results] : [];
+        let collected = appendNextPage ? [...(state.search.libraryCache.subs || [])] : [];
         const seenChannelIds = new Set(collected.map((it) => it.channelId || it.id));
         let pageToken = appendNextPage ? state.search.pagination.nextPageToken : '';
         const maxLoops = appendNextPage ? 3 : 10; // 最大500件まで一気に全件自動取得
@@ -2914,9 +3467,7 @@
 
         state.search.pagination.nextPageToken = pageToken;
         saveLibraryCache('subs', collected);
-        state.search.results = collected;
-        setSectionBanner(`📺 登録チャンネル一覧 (全 ${collected.length}${pageToken ? '+' : ''} 件)`);
-        renderCardGrid(collected, 'playlists');
+        renderSubsView(0);
       } catch (e) {
         if (!appendNextPage) showSearchAreaMessage('登録チャンネルの取得に失敗しました。右上の「🔄 トークン更新」からお試しください。', '', true);
       }
@@ -2994,10 +3545,12 @@
       }
 
       document.getElementById('channel-detail-toolbar').classList.remove('hidden');
+      document.getElementById('subs-folder-toolbar').classList.add('hidden');
       document.getElementById('channel-detail-avatar').src = state.search.activeChannel.thumbnail || 'https://placehold.co/40x40/18181b/10b981?text=CH';
       document.getElementById('channel-detail-name').textContent = state.search.activeChannel.title;
       document.getElementById('channel-search-input').value = '';
       document.getElementById('btn-channel-search-clear').classList.add('hidden');
+      updateActiveChannelDetailFolderButton();
 
       resetPagination('channel_uploads', '', '');
       updateChannelCategoryTabsUI();
@@ -3487,6 +4040,7 @@
       const ytFilter = document.getElementById('yt-filter-group');
       const searchForm = document.getElementById('search-form-bar');
       const plToolbar = document.getElementById('playlist-toolbar');
+      const subsFolderToolbar = document.getElementById('subs-folder-toolbar');
       const chToolbar = document.getElementById('channel-detail-toolbar');
       const plDetailBar = document.getElementById('playlist-detail-toolbar');
       const settingsPanel = document.getElementById('settings-panel');
@@ -3495,7 +4049,9 @@
       const pgBar = document.getElementById('pagination-bar');
       const refreshBtn = document.getElementById('btn-refresh-library');
 
-      [ytFilter, searchForm, plToolbar, chToolbar, plDetailBar, settingsPanel].forEach((el) => el.classList.add('hidden'));
+      [ytFilter, searchForm, plToolbar, subsFolderToolbar, chToolbar, plDetailBar, settingsPanel].forEach((el) => {
+        if (el) el.classList.add('hidden');
+      });
       resultsArea.classList.remove('hidden');
       banner.classList.remove('hidden');
 
@@ -3513,8 +4069,9 @@
         searchForm.classList.remove('hidden');
       } else if (tab === 'playlists') {
         plToolbar.classList.remove('hidden');
-      } else if (tab === 'subs' && state.search.activeChannel) {
-        chToolbar.classList.remove('hidden');
+      } else if (tab === 'subs') {
+        if (state.search.activeChannel) chToolbar.classList.remove('hidden');
+        else if (subsFolderToolbar) subsFolderToolbar.classList.remove('hidden');
       } else if (tab === 'settings') {
         settingsPanel.classList.remove('hidden');
         resultsArea.classList.add('hidden');
@@ -3523,35 +4080,39 @@
       }
     }
 
-    function setSearchTab(tab, pushHistory = true, preSynced = false) {
-      if (pushHistory && !preSynced) {
+    async function setSearchTab(tab, pushHistory = true, forcePush = false) {
+      const prevTab = state.search.tab;
+      if (pushHistory && (prevTab !== tab || forcePush)) {
         syncCurrentSnapshotState();
       }
+
       state.search.tab = tab;
       state.search.activePlaylistContext = null;
-      state.search.activeChannel = null;
+      if (tab !== 'subs') state.search.activeChannel = null;
+      state.search.pagination.currentPage = 1;
       state.search.scrollTop = 0;
       syncModalToolbarsByState();
 
-      if (pushHistory) {
-        pushAppHistoryState('tab:' + tab);
+      if (pushHistory && (prevTab !== tab || forcePush)) {
+        pushAppHistoryState(`tab:${tab}`);
       }
 
       const qInput = document.getElementById('search-query-input');
       const hasQuery = Boolean(qInput && qInput.value.trim().length > 0);
 
       if (tab === 'youtube') {
-        if (hasQuery) searchYouTubeVideos(qInput.value.trim());
-        else loadYouTubeRecommendations();
+        if (hasQuery) await searchYouTubeVideos(qInput.value.trim(), false);
+        else await loadYouTubeRecommendations();
       } else if (tab === 'twitch') {
-        if (hasQuery) searchTwitchChannels(qInput.value.trim());
-        else loadTwitchRecommendations();
+        if (hasQuery) await searchTwitchChannels(qInput.value.trim());
+        else await loadTwitchRecommendations();
       } else if (tab === 'playlists') {
-        fetchMyYouTubePlaylists(false);
+        await fetchMyYouTubePlaylists(false, false);
       } else if (tab === 'liked') {
-        fetchMyLikedVideos(false);
+        await fetchMyLikedVideos(false, false);
       } else if (tab === 'subs') {
-        fetchMySubscriptions(false);
+        if (state.search.activeChannel) await renderActiveChannelContent(false);
+        else await fetchMySubscriptions(false, true, false);
       } else if (tab === 'history') {
         resetPagination('history', '', '');
         setSectionBanner(`🕒 再生履歴 (${state.search.history.length}件)`);
@@ -3566,15 +4127,18 @@
     function setYtSearchFilter(filter) {
       syncCurrentSnapshotState();
       state.search.ytFilter = filter;
+      state.search.pagination.currentPage = 1;
       state.search.scrollTop = 0;
       updateYtFilterButtonsUI();
-      pushAppHistoryState('ytFilter:' + filter);
+      pushAppHistoryState(`filter:${filter}`);
 
       const q = (document.getElementById('search-query-input')?.value || '').trim();
       if (state.search.tab === 'youtube') {
-        if (q) searchYouTubeVideos(q); else loadYouTubeRecommendations();
+        if (q) searchYouTubeVideos(q, false);
+        else loadYouTubeRecommendations();
       } else if (state.search.tab === 'twitch') {
-        if (q) searchTwitchChannels(q); else loadTwitchRecommendations();
+        if (q) searchTwitchChannels(q);
+        else loadTwitchRecommendations();
       }
     }
 
@@ -3583,27 +4147,28 @@
       const area = document.getElementById('search-results-area');
       const pgBar = document.getElementById('pagination-bar');
       if (pgBar) pgBar.classList.add('hidden');
-      updateFloatingScrollTopButton();
+      if (!area) return;
       area.className = 'flex-1 min-h-0 overflow-y-auto p-3 grid grid-cols-1 gap-3 auto-rows-max';
       area.innerHTML = `<div class="col-span-full p-8 text-center rounded-xl border theme-border theme-sub space-y-2"><p class="text-xs font-semibold ${isError ? 'text-orange-500' : 'theme-text'}">${escapeHtml(mainText)}</p>${subText ? `<p class="text-[11px] theme-text-muted">${escapeHtml(subText)}</p>` : ''}</div>`;
     }
 
     async function executeSearch(e) {
-      e.preventDefault();
-      const q = document.getElementById('search-query-input').value.trim();
+      if (e) e.preventDefault();
+      const q = (document.getElementById('search-query-input')?.value || '').trim();
       if (!q) {
-        if (state.search.tab === 'twitch') loadTwitchRecommendations();
-        else loadYouTubeRecommendations();
+        if (state.search.tab === 'twitch') await loadTwitchRecommendations();
+        else await loadYouTubeRecommendations();
         return;
       }
       const directMedia = parseMediaInput(q);
       if (directMedia && (q.includes('http') || q.includes('youtu') || q.includes('twitch.tv') || directMedia.type === 'playlist')) {
         if (directMedia.type === 'playlist') {
-          expandPlaylistItems(directMedia.listId || directMedia.id, `プレイリスト (${directMedia.id})`);
+          await expandPlaylistItems(directMedia.listId || directMedia.id, `プレイリスト (${directMedia.id})`);
           return;
         }
         closeSearchModal();
-        applyMediaToTarget(directMedia, state.search.preferredTarget);
+        const target = state.search.preferredTarget !== null ? state.search.preferredTarget : (state.viewMode === 'single' ? 'single' : 0);
+        applyMediaToTarget(directMedia, target);
         return;
       }
       if (state.search.tab === 'twitch') await searchTwitchChannels(q);
@@ -3612,7 +4177,7 @@
 
     function parsePipedSearchItems(rawItems, onlyLive = false, onlyShorts = false) {
       return (rawItems || [])
-        .filter((it) => it.url && (it.url.includes('v=') || it.url.includes('/shorts/')))
+        .filter((it) => it && it.url && (it.url.includes('v=') || it.url.includes('/shorts/')))
         .map((it) => {
           const vid = it.url.includes('/shorts/') ? it.url.split('/shorts/')[1]?.split(/[?&]/)[0] : it.url.split('v=')[1]?.split('&')[0];
           const chId = it.uploaderUrl?.includes('/channel/') ? it.uploaderUrl.split('/channel/')[1]?.split(/[/?&]/)[0] : '';
@@ -3635,7 +4200,7 @@
 
     async function loadYouTubeRecommendations() {
       state.search.activePlaylistContext = null;
-      document.getElementById('playlist-detail-toolbar').classList.add('hidden');
+      document.getElementById('playlist-detail-toolbar')?.classList.add('hidden');
       resetPagination('yt_recommend', '', '');
 
       const filter = state.search.ytFilter;
@@ -3659,19 +4224,16 @@
             if (filter === 'shorts') params.videoDuration = 'short';
 
             const data = await fetchYouTubeOfficialApi('search', params, false);
-            const raw = (data.items || []).map((it) => {
-              const pubRaw = it.snippet?.publishedAt || it.snippet?.publishTime || '';
-              return {
-                platform: 'youtube', type: 'video', itemKind: 'video', id: it.id.videoId,
-                channelId: it.snippet?.channelId || '',
-                publishedAt: pubRaw,
-                publishedText: formatPublishedDateText(pubRaw),
-                isShort: filter === 'shorts' || detectIsShortText(it.snippet?.title),
-                isLive: it.snippet?.liveBroadcastContent === 'live',
-                title: it.snippet?.title || '', author: it.snippet?.channelTitle || '',
-                thumbnail: it.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${it.id.videoId}/mqdefault.jpg`
-              };
-            });
+            const raw = (data.items || []).map((it) => ({
+              platform: 'youtube', type: 'video', itemKind: 'video', id: it.id?.videoId || '',
+              channelId: it.snippet?.channelId || '',
+              publishedAt: it.snippet?.publishedAt || '',
+              publishedText: formatPublishedDateText(it.snippet?.publishedAt || ''),
+              isShort: filter === 'shorts' || detectIsShortText(it.snippet?.title),
+              isLive: it.snippet?.liveBroadcastContent === 'live',
+              title: it.snippet?.title || '', author: it.snippet?.channelTitle || '',
+              thumbnail: it.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${it.id?.videoId || ''}/mqdefault.jpg`
+            })).filter((it) => it.id);
             collectedItems = await enrichYouTubeVideoItems(raw);
           } catch (e) {}
         }
@@ -3708,7 +4270,6 @@
       [...localPool.slice(0, 8), ...collectedItems, ...FALLBACK_RECOMMENDED_VIDEOS].forEach((item) => {
         if (item && item.id && !seenIds.has(item.id)) {
           seenIds.add(item.id);
-          if (item.publishedAt && !item.publishedText) item.publishedText = formatPublishedDateText(item.publishedAt);
           mergedAll.push(item);
         }
       });
@@ -3717,11 +4278,12 @@
       const finalItems = filtered.length > 0 ? filtered : mergedAll;
       state.search.results = finalItems;
       const labelMap = { all: 'すべて', video: '🎬 動画', shorts: '📱 ショート', live: '🟠 LIVE' };
-      setSectionBanner(`✨ YouTube おすすめ [${labelMap[filter]}] (${finalItems.length}件)`);
+      setSectionBanner(`✨ YouTube おすすめ [${labelMap[filter] || 'すべて'}] (${finalItems.length}件)`);
       renderCardGrid(finalItems, 'results');
     }
 
     function isFavorite(item) {
+      if (!item) return false;
       return state.search.favorites.some((f) => f.platform === item.platform && f.id === item.id);
     }
 
@@ -3739,7 +4301,8 @@
       try { localStorage.setItem(STORAGE_KEYS.FAV, JSON.stringify(state.search.favorites)); } catch (e) {}
       updateFavButtonUI('single');
       for (let i = 0; i < state.multi.slotCount; i++) updateFavButtonUI(i);
-      renderCardGrid(list, state.search.lastRenderMode, state.search.scrollTop);
+      const currentScroll = document.getElementById('search-results-area')?.scrollTop || 0;
+      renderCardGrid(list, state.search.lastRenderMode, currentScroll);
     }
 
     function buildMediaKindBadgeHtml(item) {
@@ -3807,7 +4370,10 @@
       area.innerHTML = '';
 
       if (!items || items.length === 0) {
-        showSearchAreaMessage('該当する動画・配信が見つかりませんでした。', '', false);
+        const emptyHint = (state.search.tab === 'subs' && state.search.activeFolderId && state.search.activeFolderId !== '__unassigned__')
+          ? '上の「➕ CHを追加・整理」ボタン、またはチャンネル一覧のフォルダボタンからチャンネルを追加できます。'
+          : '';
+        showSearchAreaMessage('該当する項目が見つかりませんでした。', emptyHint, false);
         state.search.isLoadingView = false;
         syncCurrentSnapshotState();
         return;
@@ -3825,9 +4391,9 @@
       renderPaginationBar(items);
 
       const layout = state.search.cardLayout;
-      const isAllChannelsList = pageItems.every((it) => it.itemKind === 'channel');
+      const isAllChannelsOrFolders = pageItems.every((it) => it.itemKind === 'channel' || it.itemKind === 'folder');
 
-      if (isAllChannelsList) {
+      if (isAllChannelsOrFolders) {
         area.className = layout === 'list'
           ? 'flex-1 min-h-0 overflow-y-auto p-3.5 grid grid-cols-1 gap-3.5 auto-rows-max'
           : (layout === 'grid2' ? 'flex-1 min-h-0 overflow-y-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max' : 'flex-1 min-h-0 overflow-y-auto p-3.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 auto-rows-max');
@@ -3840,12 +4406,69 @@
       pageItems.forEach((item, localIdx) => {
         const idx = startIdx + localIdx;
         const fav = isFavorite(item);
+        const isFolderCard = item.itemKind === 'folder';
         const isChannelItem = item.itemKind === 'channel';
         const isPlaylistItem = isPlaylistItemObject(item);
         const isShort = Boolean(!isPlaylistItem && (item.isShort || detectIsShortText(item.title)));
         const isLive = Boolean(!isPlaylistItem && (item.isLive || item.mediaBadgeType === 'live'));
-        const kindBadgeHtml = buildMediaKindBadgeHtml(item);
 
+        const card = document.createElement('div');
+
+        // ★フォルダ一覧モードのフォルダカード描画
+        if (isFolderCard) {
+          const isRenaming = state.search.renamingFolderId === item.folderId;
+          const isPendingDelete = state.search.pendingDeleteFolderId === item.folderId;
+          const previews = item.previewChannels || [];
+          const avatarsStrip = previews.length > 0
+            ? `<div class="flex items-center -space-x-2 overflow-hidden py-1">` +
+              previews.map((ch) => `<img src="${escapeHtml(ch.thumbnail || 'https://placehold.co/36x36/18181b/10b981?text=CH')}" title="${escapeHtml(ch.title)}" class="w-8 h-8 rounded-full object-cover ring-2 ring-zinc-900 bg-zinc-800" loading="lazy" />`).join('') +
+              (item.channelCount > previews.length ? `<span class="w-8 h-8 rounded-full theme-panel border theme-border flex items-center justify-center text-[10px] font-bold theme-text-sub">+${item.channelCount - previews.length}</span>` : '') +
+              `</div>`
+            : `<div class="text-[11px] theme-text-muted py-2">まだチャンネルが登録されていません</div>`;
+
+          card.className = 'group h-full theme-sub border theme-border hover:border-emerald-500/80 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-sm hover:shadow-md transition-all';
+          card.innerHTML = `
+            <div class="space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="flex items-center gap-2.5 cursor-pointer min-w-0 flex-1">
+                  <div class="w-11 h-11 rounded-xl badge-green border flex items-center justify-center text-xl shrink-0 shadow-sm">${escapeHtml(item.icon || '📁')}</div>
+                  <div class="min-w-0 flex-1">
+                    ${isRenaming
+                      ? `<form onsubmit="confirmRenameSubFolder('${escapeHtml(item.folderId)}', event)" onclick="event.stopPropagation()" class="flex items-center gap-1">
+                           <input id="rename-folder-input-${escapeHtml(item.folderId)}" type="text" value="${escapeHtml(item.title)}" class="theme-input border rounded px-2 py-0.5 text-xs font-bold w-full" />
+                           <button type="submit" class="px-2 py-0.5 btn-green rounded text-[11px] font-bold shrink-0">保存</button>
+                           <button type="button" onclick="cancelRenameSubFolder(event)" class="px-1.5 py-0.5 theme-panel rounded border text-[11px] shrink-0">✕</button>
+                         </form>`
+                      : `<div class="font-extrabold text-sm sm:text-base theme-text group-hover:text-emerald-500 truncate">${escapeHtml(item.title)}</div>`
+                    }
+                    <div class="text-[11px] theme-text-muted font-medium">${item.channelCount} チャンネル</div>
+                  </div>
+                </div>
+                ${!item.isSystemFolder ? `
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" onclick="startRenameSubFolder('${escapeHtml(item.folderId)}', event)" class="px-2 py-1 rounded-lg theme-panel hover:opacity-80 border text-[11px] theme-text-sub" title="フォルダ名を変更">✏️</button>
+                    <button type="button" onclick="requestDeleteSubFolder('${escapeHtml(item.folderId)}', event)" class="px-2 py-1 rounded-lg border text-[11px] font-bold transition-colors ${isPendingDelete ? 'bg-orange-600 text-white border-orange-500' : 'theme-panel theme-text-muted hover:text-orange-500'}" title="フォルダを削除">
+                      ${isPendingDelete ? '削除確認' : '🗑️'}
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+              <div onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="cursor-pointer pt-1">
+                ${avatarsStrip}
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t theme-border">
+              <button type="button" onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="flex-1 px-3 py-1.5 rounded-xl btn-green text-xs font-bold shadow-sm">📂 フォルダを開く (${item.channelCount})</button>
+              ${!item.isSystemFolder ? `
+                <button type="button" onclick="openBulkAssignModalForFolder('${escapeHtml(item.folderId)}', event)" class="px-3 py-1.5 rounded-xl theme-panel hover:bg-orange-500 hover:text-white border text-xs font-bold transition-colors">➕ CHを追加・整理</button>
+              ` : ''}
+            </div>
+          `;
+          area.appendChild(card);
+          return;
+        }
+
+        const kindBadgeHtml = buildMediaKindBadgeHtml(item);
         const pubDateText = item.publishedText || formatPublishedDateText(item.publishedAt || '');
         const pubBadgeHtml = pubDateText
           ? `<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md theme-panel border theme-border text-[11px] font-medium theme-text-sub">
@@ -3865,7 +4488,6 @@
           }
         }
 
-        const card = document.createElement('div');
         const borderHighlight = isLive ? 'border-orange-500 ring-1 ring-orange-500/30 hover:border-orange-400' : 'theme-border hover:border-emerald-500/70';
 
         if (isChannelItem) {
@@ -3875,17 +4497,28 @@
             ? `<img src="${escapeHtml(item.thumbnail)}" alt="" class="${avatarSizeClass} rounded-full object-cover bg-zinc-900 border-2 border-emerald-500/40 shadow-md shrink-0" loading="lazy" />`
             : `<div class="${avatarSizeClass} rounded-full btn-mono shrink-0 flex items-center justify-center text-base font-bold">CH</div>`;
 
+          const normCid = normalizeChannelId(item.channelId || item.id);
+          const allFolders = state.search.subFolders || [];
+          const quickFolderChipsHtml = allFolders.map((f) => {
+            const active = isChannelInFolder(normCid, f.id);
+            return `<button type="button" onclick="toggleChannelInFolder('${escapeHtml(normCid)}', '${escapeHtml(f.id)}', event)" class="px-2 py-0.5 rounded-md border text-[10px] font-bold transition-colors ${active ? 'badge-orange border-orange-500' : 'theme-panel theme-text-muted hover:text-emerald-500'}" title="クリックで「${escapeHtml(f.name)}」に追加/解除">${escapeHtml(f.icon || '📁')} ${escapeHtml(f.name)}${active ? ' ✓' : ''}</button>`;
+          }).join('');
+
           card.className = `group h-full theme-sub border ${borderHighlight} rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all`;
           card.innerHTML = `
             <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="cursor-pointer shrink-0">${avatarHtml}</div>
-            <div class="flex-1 min-w-0 flex flex-col justify-between gap-2.5">
+            <div class="flex-1 min-w-0 flex flex-col justify-between gap-2">
               <div>
-                <div class="flex items-center justify-between gap-2">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold badge-green border">📺 登録チャンネル #${idx + 1}</span>
-                  <button onclick="toggleFavoriteItem(${idx})" class="px-2 py-0.5 rounded-lg border theme-panel text-xs ${fav ? 'text-orange-500 font-bold' : 'theme-text-muted'}">${fav ? '★ 登録済' : '☆'}</button>
+                <div class="flex items-center justify-between gap-1.5 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold badge-green border">📺 登録CH #${idx + 1}</span>
+                  <div class="flex items-center gap-1">
+                    <button type="button" onclick="openFolderModalForChannel('${escapeHtml(normCid)}', '${escapeHtml(item.title)}', '${escapeHtml(item.thumbnail || '')}', event)" class="px-2 py-0.5 rounded-lg border theme-panel hover:border-emerald-500 text-[11px] font-bold theme-text-sub">📁 フォルダ設定</button>
+                    <button onclick="toggleFavoriteItem(${idx})" class="px-2 py-0.5 rounded-lg border theme-panel text-xs ${fav ? 'text-orange-500 font-bold' : 'theme-text-muted'}">${fav ? '★' : '☆'}</button>
+                  </div>
                 </div>
                 <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="font-extrabold ${isExtraLarge ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'} theme-text line-clamp-1 mt-1 cursor-pointer group-hover:text-emerald-500">${escapeHtml(item.title)}</div>
-                <p class="text-xs theme-text-muted line-clamp-2 mt-1">${escapeHtml(item.author || '')}</p>
+                <p class="text-[11px] theme-text-muted line-clamp-1 mt-0.5">${escapeHtml(item.author || '')}</p>
+                <div class="flex flex-wrap items-center gap-1 mt-1.5">${quickFolderChipsHtml}</div>
               </div>
               <button onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="w-full sm:w-auto px-4 py-1.5 rounded-xl btn-green text-xs font-bold shadow-sm">📺 チャンネル詳細を開く (動画 / LIVE / ショート)</button>
             </div>
