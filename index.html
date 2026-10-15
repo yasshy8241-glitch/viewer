@@ -60,83 +60,83 @@
 <body class="flex flex-col h-screen w-screen overflow-hidden">
 
   <!-- ==================== トップヘッダー ==================== -->
-  <header class="theme-header border-b px-3 py-2 shrink-0 z-20 shadow-sm">
+  <header class="theme-header border-b px-3 py-1.5 shrink-0 z-20 shadow-sm">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <!-- ロゴ ＆ 現在のレイアウト状態バッジ -->
       <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 via-indigo-600 to-purple-600 flex items-center justify-center font-bold text-xs text-white shadow shrink-0">
+        <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-red-500 via-indigo-600 to-purple-600 flex items-center justify-center font-bold text-xs text-white shadow shrink-0">
           ▶
         </div>
         <span class="font-bold text-sm tracking-tight theme-text shrink-0">Stream Vertical Studio</span>
-        <span id="layout-status-badge" class="text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0">
+        <span id="layout-status-badge" class="text-[11px] px-2 py-0.5 rounded-full border font-medium bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0">
           📱 縦長 (動画下チャット)
         </span>
       </div>
 
       <!-- モード・比率・検索・テーマ切替ボタン群 -->
-      <div class="flex flex-wrap items-center justify-end gap-2">
-        <button onclick="openSearchModal()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center gap-1 shrink-0">
+      <div class="flex flex-wrap items-center justify-end gap-1.5">
+        <button onclick="openSearchModal()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center gap-1 shrink-0">
           🔍 検索 / プレイリスト / 履歴
         </button>
 
         <div id="orientation-controls" class="flex items-center theme-sub p-0.5 rounded-lg border text-xs transition-opacity duration-150">
-          <button id="btn-ori-auto" onclick="setOrientationLock('auto')" class="px-2 py-1 rounded-md transition-colors bg-indigo-600 text-white font-medium">
+          <button id="btn-ori-auto" onclick="setOrientationLock('auto')" class="px-2 py-0.5 rounded-md transition-colors bg-indigo-600 text-white font-medium">
             自動検知
           </button>
-          <button id="btn-ori-portrait" onclick="setOrientationLock('portrait')" class="px-2 py-1 rounded-md transition-colors theme-text-sub">
+          <button id="btn-ori-portrait" onclick="setOrientationLock('portrait')" class="px-2 py-0.5 rounded-md transition-colors theme-text-sub">
             縦長固定
           </button>
-          <button id="btn-ori-landscape" onclick="setOrientationLock('landscape')" class="px-2 py-1 rounded-md transition-colors theme-text-sub">
+          <button id="btn-ori-landscape" onclick="setOrientationLock('landscape')" class="px-2 py-0.5 rounded-md transition-colors theme-text-sub">
             横長固定
           </button>
         </div>
 
         <!-- 画面分割数（シングル / 縦2画面 / 縦3画面 / 縦4画面）切替 -->
         <div class="flex items-center theme-sub p-0.5 rounded-lg border text-xs">
-          <button id="btn-mode-single" onclick="setViewMode('single')" class="px-2.5 py-1 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm">
+          <button id="btn-mode-single" onclick="setViewMode('single')" class="px-2.5 py-0.5 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm">
             シングル
           </button>
-          <button id="btn-mode-multi-2" onclick="setMultiCount(2)" class="px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub" title="別ウィンドウと並べる作業時に最適な2画面モード">
+          <button id="btn-mode-multi-2" onclick="setMultiCount(2)" class="px-2.5 py-0.5 rounded-md font-medium transition-colors theme-text-sub" title="別ウィンドウと並べる作業時に最適な2画面モード">
             縦2画面
           </button>
-          <button id="btn-mode-multi-3" onclick="setMultiCount(3)" class="px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub" title="縦モニター全画面に最適な3画面モード">
+          <button id="btn-mode-multi-3" onclick="setMultiCount(3)" class="px-2.5 py-0.5 rounded-md font-medium transition-colors theme-text-sub" title="縦モニター全画面に最適な3画面モード">
             縦3画面
           </button>
-          <button id="btn-mode-multi-4" onclick="setMultiCount(4)" class="px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub" title="最大4枠同時視聴モード">
+          <button id="btn-mode-multi-4" onclick="setMultiCount(4)" class="px-2.5 py-0.5 rounded-md font-medium transition-colors theme-text-sub" title="最大4枠同時視聴モード">
             縦4画面
           </button>
         </div>
 
-        <button id="btn-theme-toggle" onclick="toggleTheme()" class="w-[124px] justify-center py-1 theme-sub hover:opacity-80 rounded-lg text-xs border font-medium transition-colors flex items-center gap-1 theme-text">
-          🌙 ダークモードへ
+        <button id="btn-theme-toggle" onclick="toggleTheme()" class="px-2.5 py-1 theme-sub hover:opacity-80 rounded-lg text-xs border font-medium transition-colors flex items-center gap-1 theme-text shrink-0">
+          🌙 ダーク
         </button>
 
-        <button id="btn-collapse-header" onclick="toggleHeaderCollapse()" class="w-[96px] text-center py-1 theme-sub hover:opacity-80 rounded-lg text-xs border transition-colors theme-text-sub">
+        <button id="btn-collapse-header" onclick="toggleHeaderCollapse()" class="px-2 py-1 theme-sub hover:opacity-80 rounded-lg text-xs border transition-colors theme-text-sub shrink-0">
           ▲ 最小化
         </button>
       </div>
     </div>
 
     <!-- シングルモード用 URL入力＆調整バー -->
-    <div id="single-toolbar" class="mt-2 pt-2 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
+    <div id="single-toolbar" class="mt-1.5 pt-1.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
       <form onsubmit="handleSingleSubmit(event)" class="flex-1 min-w-[240px] flex items-center gap-1.5">
         <span id="single-platform-badge" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded text-white shrink-0"></span>
         <input
           id="single-url-input"
           type="text"
           placeholder="YouTube(動画/ライブ/プレイリスト) または Twitch のURLを入力して「反映」"
-          class="flex-1 theme-input border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+          class="flex-1 theme-input border rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-indigo-500"
         />
-        <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shrink-0 shadow-sm">
+        <button type="submit" class="px-3.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shrink-0 shadow-sm">
           反映
         </button>
-        <button type="button" onclick="openSearchModal('single')" class="px-3 py-1.5 theme-sub hover:opacity-80 theme-text rounded-lg border font-medium transition-colors shrink-0">
+        <button type="button" onclick="openSearchModal('single')" class="px-2.5 py-1 theme-sub hover:opacity-80 theme-text rounded-lg border font-medium transition-colors shrink-0">
           🔍 検索・履歴
         </button>
       </form>
 
       <div class="flex flex-wrap items-center gap-2">
-        <div id="single-height-slider-wrap" class="flex items-center gap-1.5 theme-sub px-2.5 py-1 rounded-lg border">
+        <div id="single-height-slider-wrap" class="flex items-center gap-1.5 theme-sub px-2 py-0.5 rounded-lg border">
           <span class="text-[11px] text-nowrap theme-text-sub">動画サイズ:</span>
           <input
             id="single-height-slider"
@@ -149,14 +149,14 @@
           />
         </div>
 
-        <button id="btn-single-chat-toggle" onclick="toggleSingleChat()" class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600">
+        <button id="btn-single-chat-toggle" onclick="toggleSingleChat()" class="px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600">
           💬 チャット表示中
         </button>
       </div>
     </div>
 
     <!-- マルチモード用 ワンボタン音声バランサー ＆ レイアウト調整バー -->
-    <div id="multi-toolbar" class="hidden mt-2 pt-2 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
+    <div id="multi-toolbar" class="hidden mt-1.5 pt-1.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
       <div class="flex flex-wrap items-center gap-1.5">
         <span class="theme-text-sub font-medium mr-1">🔊 ワンボタンメイン音声:</span>
         <div id="multi-audio-buttons" class="flex flex-wrap items-center gap-1.5"></div>
@@ -170,10 +170,10 @@
           <button id="btn-subvol-30" onclick="setSubVolumeLevel(30)" class="px-2 py-0.5 rounded text-[11px] transition-colors">中(30%)</button>
         </div>
 
-        <button onclick="setAllVolumes(50, false)" class="px-2.5 py-1 theme-sub hover:opacity-80 rounded-md border text-[11px] transition-colors theme-text">
+        <button onclick="setAllVolumes(50, false)" class="px-2 py-0.5 theme-sub hover:opacity-80 rounded-md border text-[11px] transition-colors theme-text">
           すべて均等(50%)
         </button>
-        <button onclick="setAllVolumes(0, true)" class="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-md border border-rose-500/30 text-[11px] transition-colors">
+        <button onclick="setAllVolumes(0, true)" class="px-2 py-0.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-md border border-rose-500/30 text-[11px] transition-colors">
           🔇 全ミュート
         </button>
       </div>
@@ -205,7 +205,7 @@
 
       <!-- チャット領域 -->
       <div id="single-chat-pane" class="flex-1 w-full min-h-0 overflow-hidden flex flex-col theme-panel">
-        <div class="flex items-center justify-between px-3 py-1.5 theme-sub border-b shrink-0">
+        <div class="flex items-center justify-between px-3 py-1 theme-sub border-b shrink-0">
           <div class="flex items-center gap-2 min-w-0">
             <span id="single-chat-dot" class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
             <span id="single-chat-title" class="text-xs font-semibold theme-text truncate">ライブチャット</span>
@@ -230,35 +230,35 @@
   </main>
 
   <!-- ==================== 統合モーダル (検索 / プレイリスト / 履歴 / YTアカウント連携) ==================== -->
-  <div id="search-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
-    <div class="theme-panel border theme-border rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
-      <!-- モーダルヘッダー -->
-      <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 theme-sub border-b shrink-0">
+  <div id="search-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-1.5 sm:p-3">
+    <div class="theme-panel border theme-border rounded-xl shadow-2xl w-full max-w-6xl h-[94vh] flex flex-col overflow-hidden">
+      <!-- モーダルヘッダー (高さを抑えたスリム設計) -->
+      <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 theme-sub border-b shrink-0">
         <div class="flex items-center gap-2">
-          <span class="text-base">🔍</span>
-          <h2 class="font-bold text-sm theme-text">検索 ＆ マイライブラリ (YouTube / Twitch)</h2>
+          <span class="text-sm">🔍</span>
+          <h2 class="font-bold text-xs sm:text-sm theme-text">検索 ＆ マイライブラリ</h2>
           <span id="search-target-indicator" class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-600 border border-indigo-500/30 font-medium">
             反映先: シングル視聴
           </span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <span id="yt-auth-status-badge" class="text-[11px] px-2 py-0.5 rounded border theme-panel theme-text-muted">
             YouTube未連携
           </span>
           <button id="btn-google-login" onclick="handleGoogleAuthClick()" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors">
             🔗 YouTubeアカウント連携
           </button>
-          <button onclick="closeSearchModal()" class="w-7 h-7 flex items-center justify-center rounded-lg theme-panel hover:text-rose-500 border text-sm">
+          <button onclick="closeSearchModal()" class="w-7 h-7 flex items-center justify-center rounded-lg theme-panel hover:text-rose-500 border text-sm font-bold">
             ✕
           </button>
         </div>
       </div>
 
       <!-- ナビゲーションタブ ＆ サブツールバー -->
-      <div class="px-3 pt-2.5 pb-2 border-b theme-border space-y-2 shrink-0">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="flex flex-wrap items-center theme-sub p-1 rounded-lg border text-xs gap-1">
+      <div class="px-3 py-1.5 border-b theme-border space-y-1.5 shrink-0">
+        <div class="flex flex-wrap items-center justify-between gap-1.5">
+          <div class="flex flex-wrap items-center theme-sub p-0.5 rounded-lg border text-xs gap-1">
             <button id="tab-search-yt" onclick="setSearchTab('youtube')" class="px-2.5 py-1 rounded-md font-medium bg-red-600 text-white shadow-sm">
               ▶ YouTube検索
             </button>
@@ -280,75 +280,83 @@
           </div>
 
           <!-- YouTube検索用 ライブ絞り込みフィルタ -->
-          <div id="yt-filter-group" class="flex items-center theme-sub p-1 rounded-lg border text-xs gap-1">
-            <button id="btn-filter-all" onclick="setYtSearchFilter('all')" class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-medium">
+          <div id="yt-filter-group" class="flex items-center theme-sub p-0.5 rounded-lg border text-xs gap-1">
+            <button id="btn-filter-all" onclick="setYtSearchFilter('all')" class="px-2 py-0.5 rounded bg-indigo-600 text-white font-medium">
               すべて
             </button>
-            <button id="btn-filter-live" onclick="setYtSearchFilter('live')" class="px-2.5 py-0.5 rounded theme-text-sub">
+            <button id="btn-filter-live" onclick="setYtSearchFilter('live')" class="px-2 py-0.5 rounded theme-text-sub">
               🔴 ライブのみ
             </button>
           </div>
         </div>
 
         <!-- 検索キーワード入力バー (YouTube / Twitchタブ時) -->
-        <form id="search-form-bar" onsubmit="executeSearch(event)" class="flex items-center gap-2">
+        <form id="search-form-bar" onsubmit="executeSearch(event)" class="flex items-center gap-1.5">
           <input
             id="search-query-input"
             type="text"
             placeholder="キーワード（例: シャドバ、配信者名）またはURLを入力して検索..."
-            class="flex-1 theme-input border rounded-lg px-3.5 py-2 text-xs focus:outline-none focus:border-indigo-500"
+            class="flex-1 theme-input border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
           />
-          <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors shrink-0 shadow">
+          <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors shrink-0 shadow">
             検索する
           </button>
         </form>
 
         <!-- プレイリスト・高評価・登録チャンネル切替ツールバー -->
-        <div id="playlist-toolbar" class="hidden flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
-          <div class="flex flex-wrap items-center theme-sub p-1 rounded-lg border gap-1">
-            <button id="btn-pl-sub-mine" onclick="fetchMyYouTubePlaylists()" class="px-3 py-1.5 rounded-md font-bold transition-colors">
+        <div id="playlist-toolbar" class="hidden flex flex-wrap items-center justify-between gap-1.5 text-xs">
+          <div class="flex flex-wrap items-center theme-sub p-0.5 rounded-lg border gap-1">
+            <button id="btn-pl-sub-mine" onclick="fetchMyYouTubePlaylists()" class="px-2.5 py-1 rounded-md font-bold transition-colors">
               📂 自分のプレイリスト
             </button>
-            <button id="btn-pl-sub-liked" onclick="fetchMyLikedVideos()" class="px-3 py-1.5 rounded-md font-bold transition-colors">
+            <button id="btn-pl-sub-liked" onclick="fetchMyLikedVideos()" class="px-2.5 py-1 rounded-md font-bold transition-colors">
               👍 高評価した動画
             </button>
-            <button id="btn-pl-sub-subs" onclick="fetchMySubscriptions()" class="px-3 py-1.5 rounded-md font-bold transition-colors">
+            <button id="btn-pl-sub-subs" onclick="fetchMySubscriptions()" class="px-2.5 py-1 rounded-md font-bold transition-colors">
               📺 登録チャンネル
             </button>
           </div>
 
           <!-- ログイン不要のプレイリストURL/ID直接読み込みフォーム -->
-          <form onsubmit="handleDirectPlaylistLoad(event)" class="flex items-center gap-1.5 flex-1 min-w-[220px] max-w-sm">
+          <form onsubmit="handleDirectPlaylistLoad(event)" class="flex items-center gap-1.5 flex-1 min-w-[200px] max-w-sm">
             <input
               id="direct-playlist-input"
               type="text"
               placeholder="公開プレイリストURLまたはID (PL...) を直接読込"
-              class="flex-1 theme-input border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500"
+              class="flex-1 theme-input border rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-indigo-500"
             />
-            <button type="submit" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium shrink-0">
+            <button type="submit" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium shrink-0">
               読込
             </button>
           </form>
         </div>
 
-        <!-- 現在表示中のセクション見出しバー (「戻る」ボタン付き) -->
-        <div id="current-section-banner" class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/25 text-xs">
+        <!-- 現在表示中のセクション見出しバー (「戻る」ボタン ＆ カード表示スタイル切替付き) -->
+        <div id="current-section-banner" class="flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/25 text-xs">
           <div class="flex items-center gap-2 min-w-0">
-            <button id="btn-back-to-parent" onclick="handleBackToParentList()" class="hidden px-2.5 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-[11px] shrink-0 shadow-sm">
+            <button id="btn-back-to-parent" onclick="handleBackToParentList()" class="hidden px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-[11px] shrink-0 shadow-sm">
               ⬅ 一覧に戻る
             </button>
             <span id="current-section-title" class="font-bold text-indigo-600 dark:text-indigo-300 truncate">
               ▶ YouTube 検索
             </span>
           </div>
-          <span class="text-[11px] theme-text-sub hidden sm:inline shrink-0">
-            💡 サムネイルやタイトルをクリックするとすぐに再生・展開できます
-          </span>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <div class="flex items-center theme-panel p-0.5 rounded border text-[11px]">
+              <button id="btn-card-layout-grid" onclick="setCardLayout('grid')" class="px-2 py-0.5 rounded font-medium bg-indigo-600 text-white">
+                ⊞ グリッド
+              </button>
+              <button id="btn-card-layout-list" onclick="setCardLayout('list')" class="px-2 py-0.5 rounded font-medium theme-text-sub" title="高さが低いウィンドウでも一覧しやすい横並びリスト表示">
+                📋 コンパクト
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- 設定タブ用パネル -->
-      <div id="settings-panel" class="hidden flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+      <div id="settings-panel" class="hidden flex-1 min-h-0 overflow-y-auto p-4 space-y-4 text-xs">
         <div class="theme-sub border theme-border rounded-xl p-4 space-y-3">
           <h3 class="font-bold text-sm text-indigo-500">1. YouTube Data API v3 キー設定（高速・確実な検索用）</h3>
           <p class="theme-text-sub leading-relaxed">
@@ -390,8 +398,8 @@
         </div>
       </div>
 
-      <!-- 検索結果・プレイリスト・履歴カード一覧表示エリア -->
-      <div id="search-results-area" class="flex-1 overflow-y-auto p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start content-start"></div>
+      <!-- 検索結果・プレイリスト・履歴カード一覧表示エリア (重なり・見切れ防止の auto-rows-max + min-h-0 構造) -->
+      <div id="search-results-area" class="flex-1 min-h-0 overflow-y-auto p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 auto-rows-max"></div>
     </div>
   </div>
 
@@ -403,6 +411,7 @@
     const YT_API_KEY_STORAGE = 'stream_vertical_studio_yt_apikey';
     const GOOGLE_CLIENT_ID_STORAGE = 'stream_vertical_studio_google_client_id';
     const MULTI_COUNT_STORAGE = 'stream_vertical_studio_multi_count';
+    const CARD_LAYOUT_STORAGE = 'stream_vertical_studio_card_layout';
     const embedDomain = window.location.hostname || 'localhost';
 
     const state = {
@@ -419,7 +428,7 @@
         twitchPlayer: null
       },
       multi: {
-        slotCount: 2, // 2 | 3 | 4 (別ウィンドウ併用でも使いやすい2画面を初期値に設定)
+        slotCount: 2, // 2 | 3 | 4
         activeAudioIndex: 0,
         subVolumeLevel: 15,
         slots: [
@@ -433,6 +442,8 @@
         tab: 'youtube',
         playlistSubTab: 'mine',
         ytFilter: 'all',
+        cardLayout: 'grid', // 'grid' | 'list'
+        lastRenderMode: 'results',
         preferredTarget: null,
         results: [],
         parentResults: null,
@@ -551,6 +562,11 @@
           state.multi.slotCount = savedMultiCount;
         }
 
+        const savedCardLayout = localStorage.getItem(CARD_LAYOUT_STORAGE);
+        if (savedCardLayout === 'grid' || savedCardLayout === 'list') {
+          state.search.cardLayout = savedCardLayout;
+        }
+
         const savedFavs = localStorage.getItem(FAV_KEY);
         if (savedFavs) state.search.favorites = JSON.parse(savedFavs) || [];
 
@@ -570,6 +586,7 @@
         }
       } catch (e) {}
       applyThemeUI();
+      updateCardLayoutButtonsUI();
     }
 
     function saveCredentials() {
@@ -636,10 +653,10 @@
       const btn = document.getElementById('btn-theme-toggle');
       if (state.theme === 'dark') {
         htmlEl.classList.add('dark');
-        if (btn) btn.innerHTML = '☀️ ライトモードへ';
+        if (btn) btn.innerHTML = '☀️ ライト';
       } else {
         htmlEl.classList.remove('dark');
-        if (btn) btn.innerHTML = '🌙 ダークモードへ';
+        if (btn) btn.innerHTML = '🌙 ダーク';
       }
     }
 
@@ -647,7 +664,7 @@
       state.isHeaderCollapsed = !state.isHeaderCollapsed;
       const btn = document.getElementById('btn-collapse-header');
       if (btn) {
-        btn.textContent = state.isHeaderCollapsed ? '▼ ツール展開' : '▲ 最小化';
+        btn.textContent = state.isHeaderCollapsed ? '▼ 展開' : '▲ 最小化';
       }
       syncToolbarsVisibility();
     }
@@ -681,7 +698,7 @@
       modes.forEach((m) => {
         const btn = document.getElementById('btn-ori-' + m);
         if (!btn) return;
-        btn.className = 'px-2 py-1 rounded-md transition-colors ' +
+        btn.className = 'px-2 py-0.5 rounded-md transition-colors ' +
           (m === mode ? 'bg-indigo-600 text-white font-medium shadow-sm' : 'theme-text-sub hover:opacity-80');
       });
       applyResponsiveLayout();
@@ -693,8 +710,8 @@
       const m3Btn = document.getElementById('btn-mode-multi-3');
       const m4Btn = document.getElementById('btn-mode-multi-4');
 
-      const activeClass = 'px-2.5 py-1 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm';
-      const inactiveClass = 'px-2.5 py-1 rounded-md font-medium transition-colors theme-text-sub hover:opacity-80';
+      const activeClass = 'px-2.5 py-0.5 rounded-md font-medium transition-colors bg-indigo-600 text-white shadow-sm';
+      const inactiveClass = 'px-2.5 py-0.5 rounded-md font-medium transition-colors theme-text-sub hover:opacity-80';
 
       singleBtn.className = state.viewMode === 'single' ? activeClass : inactiveClass;
       m2Btn.className = (state.viewMode === 'multi' && state.multi.slotCount === 2) ? activeClass : inactiveClass;
@@ -727,7 +744,6 @@
         oriControls.classList.add('opacity-40', 'pointer-events-none');
         pauseSingleStream();
 
-        // シングル視聴で開いていた動画があり、SLOT 1が空なら自動引き継ぎ
         if (prevMode === 'single' && state.single.media && !state.multi.slots[0].media) {
           state.multi.slots[0].media = JSON.parse(JSON.stringify(state.single.media));
           state.multi.slots[0].rawUrl = state.single.rawUrl;
@@ -739,7 +755,6 @@
       }
     }
 
-    // 2画面 / 3画面 / 4画面の切り替え
     function setMultiCount(count) {
       state.multi.slotCount = count;
       try { localStorage.setItem(MULTI_COUNT_STORAGE, String(count)); } catch (e) {}
@@ -761,7 +776,7 @@
     function applyResponsiveLayout() {
       const badge = document.getElementById('layout-status-badge');
       if (state.viewMode === 'multi') {
-        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-indigo-500/10 text-indigo-600 border-indigo-500/30 shrink-0';
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium bg-indigo-500/10 text-indigo-600 border-indigo-500/30 shrink-0';
         badge.textContent = `🎛️ 縦${state.multi.slotCount}画面マルチ`;
         return;
       }
@@ -773,7 +788,7 @@
       const sliderWrap = document.getElementById('single-height-slider-wrap');
 
       if (portrait) {
-        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0';
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0';
         badge.textContent = '📱 縦長 (動画下チャット)';
         singleView.className = 'w-full h-full flex flex-col overflow-hidden';
         videoPane.className = 'w-full shrink-0 border-b theme-border bg-black relative flex items-center justify-center';
@@ -782,7 +797,7 @@
         if (state.single.showChat) sliderWrap.classList.remove('hidden');
         else sliderWrap.classList.add('hidden');
       } else {
-        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full border font-medium bg-amber-500/10 text-amber-600 border-amber-500/30 shrink-0';
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-full border font-medium bg-amber-500/10 text-amber-600 border-amber-500/30 shrink-0';
         badge.textContent = '🖥️ 横長 (動画右チャット)';
         singleView.className = 'w-full h-full flex flex-row overflow-hidden';
         videoPane.className = 'h-full shrink-0 border-r theme-border bg-black relative flex items-center justify-center';
@@ -838,10 +853,10 @@
       state.single.showChat = !state.single.showChat;
       const btn = document.getElementById('btn-single-chat-toggle');
       if (state.single.showChat) {
-        btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600';
+        btn.className = 'px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors bg-emerald-500/10 border-emerald-500/40 text-emerald-600';
         btn.textContent = '💬 チャット表示中';
       } else {
-        btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors theme-sub theme-text-sub';
+        btn.className = 'px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors theme-sub theme-text-sub';
         btn.textContent = '💬 チャット非表示';
       }
       applyResponsiveLayout();
@@ -990,7 +1005,7 @@
         const btn = document.createElement('button');
         btn.id = `btn-main-audio-${i}`;
         btn.onclick = () => focusMainAudio(i);
-        btn.className = 'px-2.5 py-1 rounded-md border font-medium transition-all flex items-center gap-1 ' +
+        btn.className = 'px-2.5 py-0.5 rounded-md border font-medium transition-all flex items-center gap-1 ' +
           (isMain
             ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
             : 'theme-sub theme-text-sub hover:opacity-80');
@@ -1453,7 +1468,7 @@
     }
 
     // ==========================================
-    // セクション見出し＆プレイリストサブタブ管理
+    // セクション見出し・プレイリストサブタブ・カード表示切替
     // ==========================================
     function setSectionBanner(titleText, showBackBtn = false) {
       const titleEl = document.getElementById('current-section-title');
@@ -1462,6 +1477,31 @@
       if (backBtn) {
         if (showBackBtn) backBtn.classList.remove('hidden');
         else backBtn.classList.add('hidden');
+      }
+    }
+
+    function updateCardLayoutButtonsUI() {
+      const gBtn = document.getElementById('btn-card-layout-grid');
+      const lBtn = document.getElementById('btn-card-layout-list');
+      if (!gBtn || !lBtn) return;
+
+      if (state.search.cardLayout === 'grid') {
+        gBtn.className = 'px-2 py-0.5 rounded font-medium bg-indigo-600 text-white';
+        lBtn.className = 'px-2 py-0.5 rounded font-medium theme-text-sub hover:opacity-80';
+      } else {
+        gBtn.className = 'px-2 py-0.5 rounded font-medium theme-text-sub hover:opacity-80';
+        lBtn.className = 'px-2 py-0.5 rounded font-medium bg-indigo-600 text-white';
+      }
+    }
+
+    function setCardLayout(layout) {
+      state.search.cardLayout = layout === 'list' ? 'list' : 'grid';
+      try { localStorage.setItem(CARD_LAYOUT_STORAGE, state.search.cardLayout); } catch (e) {}
+      updateCardLayoutButtonsUI();
+
+      const currentList = getListByMode(state.search.lastRenderMode);
+      if (currentList && currentList.length > 0) {
+        renderCardGrid(currentList, state.search.lastRenderMode);
       }
     }
 
@@ -1475,7 +1515,7 @@
       buttons.forEach((b) => {
         const el = document.getElementById(b.id);
         if (!el) return;
-        el.className = 'px-3 py-1.5 rounded-md font-bold transition-colors ' +
+        el.className = 'px-2.5 py-1 rounded-md font-bold transition-colors ' +
           (activeKey === b.key ? b.activeClass : 'theme-text-sub hover:opacity-80');
       });
     }
@@ -1694,7 +1734,6 @@
         }
       } catch (e) {}
 
-      // API未設定時のフォールバック：プレイリスト自体を直接再生可能なカードとして提示
       const fallbackItem = [{
         platform: 'youtube',
         type: 'playlist',
@@ -1725,7 +1764,7 @@
     }
 
     // ==========================================
-    // 検索モーダル・お気に入り・カード描画
+    // 検索モーダル・お気に入り・カード描画 (重なり・見切れ完全対策版)
     // ==========================================
     function openSearchModal(preferredTarget = null, initialTab = null) {
       state.search.preferredTarget = preferredTarget;
@@ -1826,14 +1865,15 @@
 
     function setYtSearchFilter(filter) {
       state.search.ytFilter = filter;
-      document.getElementById('btn-filter-all').className = 'px-2.5 py-0.5 rounded ' +
+      document.getElementById('btn-filter-all').className = 'px-2 py-0.5 rounded ' +
         (filter === 'all' ? 'bg-indigo-600 text-white font-medium' : 'theme-text-sub');
-      document.getElementById('btn-filter-live').className = 'px-2.5 py-0.5 rounded ' +
+      document.getElementById('btn-filter-live').className = 'px-2 py-0.5 rounded ' +
         (filter === 'live' ? 'bg-rose-600 text-white font-medium' : 'theme-text-sub');
     }
 
     function showSearchAreaMessage(mainText, subText = '', isError = false) {
       const area = document.getElementById('search-results-area');
+      area.className = 'flex-1 min-h-0 overflow-y-auto p-3 grid grid-cols-1 gap-3 auto-rows-max';
       area.innerHTML = `
         <div class="col-span-full p-8 text-center rounded-xl border theme-border theme-sub space-y-2">
           <p class="text-xs font-semibold ${isError ? 'text-rose-500' : 'theme-text'}">${escapeHtml(mainText)}</p>
@@ -1846,7 +1886,6 @@
       const q = document.getElementById('search-query-input').value.trim();
       if (!q) return;
 
-      // URL直接入力の判定
       const directMedia = parseMediaInput(q);
       if (directMedia && (q.includes('http') || q.includes('youtu') || q.includes('twitch.tv'))) {
         applyMediaToTarget(directMedia, state.search.preferredTarget);
@@ -1866,7 +1905,6 @@
       setSectionBanner(`▶ YouTube「${query}」を検索中...`, false);
       showSearchAreaMessage('YouTubeを検索しています...', '', false);
 
-      // 1. 公式YouTube Data API v3 キーまたはOAuthトークンがある場合
       if (state.search.ytApiKey || state.search.oauthToken) {
         try {
           const params = {
@@ -1895,7 +1933,6 @@
         } catch (err) {}
       }
 
-      // 2. APIキー未設定時の公開Piped APIフォールバック検索
       const pipedInstances = [
         'https://pipedapi.kavin.rocks',
         'https://pipedapi.tokhmi.xyz',
@@ -1987,11 +2024,12 @@
       } else if (state.search.tab === 'history') {
         renderCardGrid(state.search.history, 'history');
       } else {
-        renderCardGrid(state.search.results, 'results');
+        renderCardGrid(state.search.results, state.search.lastRenderMode || 'results');
       }
     }
 
     function renderCardGrid(items, mode) {
+      state.search.lastRenderMode = mode;
       const area = document.getElementById('search-results-area');
       area.innerHTML = '';
 
@@ -2000,73 +2038,128 @@
         return;
       }
 
+      const isListLayout = state.search.cardLayout === 'list';
+
+      // 見切れを防ぐため content-start を使わず auto-rows-max で各行の高さを100%確保
+      if (isListLayout) {
+        area.className = 'flex-1 min-h-0 overflow-y-auto p-2.5 grid grid-cols-1 md:grid-cols-2 gap-2 auto-rows-max';
+      } else {
+        area.className = 'flex-1 min-h-0 overflow-y-auto p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 auto-rows-max';
+      }
+
       items.forEach((item, idx) => {
         const fav = isFavorite(item);
         const isExpandableFolder = item.itemKind === 'playlist' || item.itemKind === 'channel';
 
-        // マルチ画面の現在の分割数(2/3/4)に合わせてSLOTボタンを動的に生成
         let slotButtonsHtml = '';
         for (let s = 0; s < state.multi.slotCount; s++) {
           slotButtonsHtml += `
             <button
               onclick="selectCardItem(${idx}, ${s}, '${mode}')"
-              class="px-2 py-1 rounded theme-sub hover:bg-indigo-600 hover:text-white border text-[11px] font-medium transition-colors"
+              class="px-2 py-0.5 rounded theme-panel hover:bg-indigo-600 hover:text-white border text-[11px] font-medium transition-colors shrink-0"
             >
               SLOT ${s + 1}
             </button>`;
         }
 
         const card = document.createElement('div');
-        card.className = 'theme-sub border theme-border rounded-xl overflow-hidden flex flex-col justify-between shadow-sm hover:border-indigo-500/60 transition-all';
 
-        const thumbHtml = item.thumbnail
-          ? `<img src="${escapeHtml(item.thumbnail)}" alt="" class="w-full h-36 object-cover bg-black" loading="lazy" />`
-          : `<div class="w-full h-36 bg-gradient-to-br from-indigo-900 via-zinc-900 to-purple-900 flex items-center justify-center text-white text-xs font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
+        if (isListLayout) {
+          // コンパクト横並びリスト表示（ウィンドウの高さが低い時に一目で多数見渡せる）
+          const thumbHtml = item.thumbnail
+            ? `<img src="${escapeHtml(item.thumbnail)}" alt="" class="w-24 h-16 object-cover bg-black rounded-lg shrink-0" loading="lazy" />`
+            : `<div class="w-24 h-16 bg-gradient-to-br from-indigo-900 via-zinc-900 to-purple-900 rounded-lg shrink-0 flex items-center justify-center text-white text-[10px] font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
 
-        card.innerHTML = `
-          <div>
-            <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="relative cursor-pointer group overflow-hidden">
+          card.className = 'theme-sub border theme-border rounded-xl p-2 flex items-center gap-2.5 shadow-sm hover:border-indigo-500/60 transition-all';
+          card.innerHTML = `
+            <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="relative cursor-pointer shrink-0">
               ${thumbHtml}
-              <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow">
-                  ${isExpandableFolder ? '📂 動画一覧を開く' : '▶ すぐ再生'}
-                </span>
-              </div>
-              <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold text-white ${item.platform === 'youtube' ? 'bg-red-600' : 'bg-purple-600'}">
-                ${item.type === 'playlist' ? 'PLAYLIST' : item.platform.toUpperCase()}
+              <span class="absolute top-1 left-1 px-1 py-0.2 rounded text-[9px] font-bold text-white ${item.platform === 'youtube' ? 'bg-red-600' : 'bg-purple-600'}">
+                ${item.type === 'playlist' ? 'LIST' : item.platform.toUpperCase()}
               </span>
-              ${item.isLive ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">🔴 LIVE</span>' : ''}
             </div>
 
-            <div class="p-2.5 space-y-1">
-              <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="font-bold text-xs theme-text line-clamp-2 cursor-pointer hover:text-indigo-500">
-                ${escapeHtml(item.title)}
+            <div class="flex-1 min-w-0 flex flex-col justify-between gap-1">
+              <div>
+                <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="font-bold text-xs theme-text truncate cursor-pointer hover:text-indigo-500" title="${escapeHtml(item.title)}">
+                  ${escapeHtml(item.title)}
+                </div>
+                <div class="text-[11px] theme-text-muted truncate">
+                  ${escapeHtml(item.author || '')} ${item.viewers ? '· ' + escapeHtml(item.viewers) : ''}
+                </div>
               </div>
-              <div class="flex items-center justify-between text-[11px] theme-text-muted">
-                <span class="truncate">${escapeHtml(item.author || '')}</span>
-                <span class="shrink-0 ml-1">${escapeHtml(item.viewers || '')}</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="px-2.5 pb-2.5 pt-1 border-t theme-border flex flex-wrap items-center justify-between gap-1">
-            <div class="flex flex-wrap items-center gap-1">
-              ${isExpandableFolder ? `
-                <button onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold">
-                  📂 中身を見る
+              <div class="flex flex-wrap items-center justify-between gap-1 pt-0.5">
+                <div class="flex flex-wrap items-center gap-1">
+                  ${isExpandableFolder ? `
+                    <button onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold">
+                      📂 中身を見る
+                    </button>
+                  ` : ''}
+                  <button onclick="selectCardItem(${idx}, 'single', '${mode}')" class="px-2 py-0.5 rounded bg-indigo-600/15 text-indigo-600 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-[11px] font-medium transition-colors">
+                    シングル
+                  </button>
+                  ${slotButtonsHtml}
+                </div>
+                <button onclick="toggleFavoriteItem(${idx})" class="px-1.5 py-0.5 rounded border theme-panel text-xs ${fav ? 'text-amber-500 border-amber-500/40' : 'theme-text-muted'}">
+                  ${fav ? '★' : '☆'}
                 </button>
-              ` : ''}
-              <button onclick="selectCardItem(${idx}, 'single', '${mode}')" class="px-2 py-1 rounded bg-indigo-600/15 text-indigo-600 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-[11px] font-medium transition-colors">
-                シングル
-              </button>
-              ${slotButtonsHtml}
+              </div>
+            </div>
+          `;
+        } else {
+          // 標準グリッドカード表示（重なり・見切れが起きないよう h-full と構造を固定）
+          const thumbHtml = item.thumbnail
+            ? `<img src="${escapeHtml(item.thumbnail)}" alt="" class="w-full h-28 object-cover bg-black block" loading="lazy" />`
+            : `<div class="w-full h-28 bg-gradient-to-br from-indigo-900 via-zinc-900 to-purple-900 flex items-center justify-center text-white text-xs font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
+
+          card.className = 'h-full theme-sub border theme-border rounded-xl flex flex-col justify-between shadow-sm hover:border-indigo-500/60 transition-all';
+          card.innerHTML = `
+            <div>
+              <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="relative cursor-pointer group rounded-t-xl overflow-hidden">
+                ${thumbHtml}
+                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow">
+                    ${isExpandableFolder ? '📂 動画一覧を開く' : '▶ すぐ再生'}
+                  </span>
+                </div>
+                <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold text-white ${item.platform === 'youtube' ? 'bg-red-600' : 'bg-purple-600'}">
+                  ${item.type === 'playlist' ? 'PLAYLIST' : item.platform.toUpperCase()}
+                </span>
+                ${item.isLive ? '<span class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white">🔴 LIVE</span>' : ''}
+              </div>
+
+              <div class="p-2.5 space-y-1">
+                <div onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="font-bold text-xs theme-text line-clamp-2 leading-snug cursor-pointer hover:text-indigo-500" title="${escapeHtml(item.title)}">
+                  ${escapeHtml(item.title)}
+                </div>
+                <div class="flex items-center justify-between text-[11px] theme-text-muted pt-0.5">
+                  <span class="truncate">${escapeHtml(item.author || '')}</span>
+                  <span class="shrink-0 ml-1">${escapeHtml(item.viewers || '')}</span>
+                </div>
+              </div>
             </div>
 
-            <button onclick="toggleFavoriteItem(${idx})" class="px-2 py-1 rounded border theme-panel text-xs ${fav ? 'text-amber-500 border-amber-500/40' : 'theme-text-muted'}" title="お気に入り登録/解除">
-              ${fav ? '★' : '☆'}
-            </button>
-          </div>
-        `;
+            <div class="px-2.5 pb-2.5 pt-1.5 border-t theme-border flex flex-wrap items-center justify-between gap-1">
+              <div class="flex flex-wrap items-center gap-1">
+                ${isExpandableFolder ? `
+                  <button onclick="handlePrimaryCardAction(${idx}, '${mode}')" class="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold">
+                    📂 中身を見る
+                  </button>
+                ` : ''}
+                <button onclick="selectCardItem(${idx}, 'single', '${mode}')" class="px-2 py-0.5 rounded bg-indigo-600/15 text-indigo-600 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-[11px] font-medium transition-colors">
+                  シングル
+                </button>
+                ${slotButtonsHtml}
+              </div>
+
+              <button onclick="toggleFavoriteItem(${idx})" class="px-2 py-0.5 rounded border theme-panel text-xs ${fav ? 'text-amber-500 border-amber-500/40' : 'theme-text-muted'}" title="お気に入り登録/解除">
+                ${fav ? '★' : '☆'}
+              </button>
+            </div>
+          `;
+        }
+
         area.appendChild(card);
       });
     }
