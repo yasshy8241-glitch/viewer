@@ -192,7 +192,7 @@
 
   <!-- ==================== 統合モーダル ==================== -->
   <div id="search-modal" class="hidden fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-1.5 sm:p-3">
-    <div class="theme-panel border theme-border rounded-xl shadow-2xl w-full max-w-6xl h-[94vh] flex flex-col overflow-hidden">
+    <div class="theme-panel border theme-border rounded-xl shadow-2xl w-full max-w-6xl h-[94vh] flex flex-col overflow-hidden relative">
       <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 theme-sub border-b shrink-0">
         <div class="flex items-center gap-2">
           <span class="text-sm">🔍</span>
@@ -282,6 +282,7 @@
             <button id="btn-refresh-library" type="button" onclick="refreshCurrentTabData()" class="hidden px-2.5 py-0.5 rounded badge-orange hover:bg-orange-500 hover:text-white border text-[11px] font-bold shrink-0 shadow-sm">🔄 全件再取得</button>
           </div>
           <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" onclick="scrollResultsToTop()" class="px-2.5 py-0.5 rounded theme-panel hover:bg-emerald-500 hover:text-white border theme-border text-[11px] font-bold theme-text-sub transition-colors shrink-0 shadow-sm" title="一覧の先頭へワンクリックで移動">⬆ 先頭へ</button>
             <div class="flex items-center gap-1 text-[11px]">
               <span class="theme-text-sub hidden sm:inline">1頁あたり:</span>
               <select id="page-size-select" onchange="changePageSize(this.value)" class="theme-panel border theme-border rounded px-1.5 py-0.5 text-[11px] font-bold theme-text">
@@ -325,6 +326,12 @@
       <!-- 結果一覧グリッド -->
       <div id="search-results-area" class="flex-1 min-h-0 overflow-y-auto p-2.5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 auto-rows-max"></div>
 
+      <!-- ワンクリックで先頭へ移動するフローティングボタン -->
+      <button id="btn-floating-scroll-top" type="button" onclick="scrollResultsToTop()" class="hidden absolute bottom-14 right-5 z-30 px-3.5 py-2 rounded-full btn-green font-extrabold text-xs shadow-xl ring-2 ring-white/30 flex items-center gap-1.5 hover:scale-105 transition-all">
+        <span>⬆</span>
+        <span>先頭へ移動</span>
+      </button>
+
       <!-- ★下部ページネーションバー (2ページ目以降の切り替え ＆ 50件以上の追加取得) -->
       <div id="pagination-bar" class="hidden px-3 py-2 theme-sub border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
         <div id="pagination-info" class="text-[11px] theme-text-sub font-medium"></div>
@@ -349,7 +356,9 @@
     const embedDomain = window.location.hostname || 'localhost';
     let isHandlingPopState = false;
     const appNavStack = [];
+    let currentNavIndex = -1;
     const ytPlayers = { single: null, 0: null, 1: null, 2: null, 3: null };
+    const lastAutoAdvanceAt = { single: 0, 0: 0, 1: 0, 2: 0, 3: 0 };
     const twitchLiveStatusCache = {};
 
     const PIPED_INSTANCES = [
@@ -389,6 +398,7 @@
         hasEverConnected: false, tokenClient: null,
         libraryCache: { mine: [], liked: [], subs: [] },
         activeChannel: null, activePlaylistContext: null,
+        scrollTop: 0, isLoadingView: false,
         pagination: {
           currentPage: 1,
           pageSize: 500,
@@ -399,6 +409,38 @@
         }
       }
     };
+
+    function scrollResultsToTop() {
+      const area = document.getElementById('search-results-area');
+      if (!area) return;
+      area.scrollTo({ top: 0, behavior: 'smooth' });
+      state.search.scrollTop = 0;
+      if (appNavStack[currentNavIndex]) {
+        appNavStack[currentNavIndex].scrollTop = 0;
+      }
+      setTimeout(updateFloatingScrollTopButton, 300);
+    }
+
+    function updateFloatingScrollTopButton() {
+      const btn = document.getElementById('btn-floating-scroll-top');
+      const area = document.getElementById('search-results-area');
+      if (!btn || !area) return;
+      const shouldShow = area.scrollTop > 180 && state.search.tab !== 'settings';
+      btn.classList.toggle('hidden', !shouldShow);
+    }
+
+    function initResultsScrollListener() {
+      const area = document.getElementById('search-results-area');
+      if (!area) return;
+      area.addEventListener('scroll', () => {
+        if (isHandlingPopState || state.search.isLoadingView) return;
+        state.search.scrollTop = area.scrollTop;
+        if (currentNavIndex >= 0 && appNavStack[currentNavIndex] && appNavStack[currentNavIndex].isModalOpen) {
+          appNavStack[currentNavIndex].scrollTop = area.scrollTop;
+        }
+        updateFloatingScrollTopButton();
+      }, { passive: true });
+    }
 
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
@@ -517,8 +559,9 @@
 
     function isPlaylistItemObject(item) {
       if (!item || item.itemKind === 'channel') return false;
+      if (item.itemKind === 'video' && !isPlaylistIdFormat(item.id)) return false;
       if (item.itemKind === 'playlist' || item.type === 'playlist' || item.mediaBadgeType === 'playlist') return true;
-      return isPlaylistIdFormat(item.listId || item.id);
+      return isPlaylistIdFormat(item.id);
     }
 
     function detectIsShortText(text) {
@@ -579,6 +622,8 @@
       const pageSize = state.search.pagination.pageSize || 50;
       const totalLoadedPages = Math.max(1, Math.ceil(list.length / pageSize));
 
+      syncCurrentSnapshotState();
+
       // まだ読み込まれていない次ページが要求され、かつAPIのnextPageTokenがある場合は自動追加取得
       if (pageNum > totalLoadedPages && state.search.pagination.nextPageToken) {
         await fetchMoreForCurrentPagination(pageNum);
@@ -586,9 +631,9 @@
       }
 
       state.search.pagination.currentPage = Math.max(1, Math.min(pageNum, totalLoadedPages));
-      renderCardGrid(list, state.search.lastRenderMode);
-      const area = document.getElementById('search-results-area');
-      if (area) area.scrollTop = 0;
+      state.search.scrollTop = 0;
+      renderCardGrid(list, state.search.lastRenderMode, 0);
+      pushAppHistoryState('page:' + state.search.pagination.currentPage);
     }
 
     async function fetchMoreForCurrentPagination(targetPageAfterLoad = null) {
@@ -620,10 +665,10 @@
         showToast('次ページの取得中にエラーが発生しました', 'error');
       } finally {
         pg.isLoadingMore = false;
+        state.search.scrollTop = 0;
         const updatedList = getListByMode(state.search.lastRenderMode);
-        renderCardGrid(updatedList, state.search.lastRenderMode);
-        const area = document.getElementById('search-results-area');
-        if (area) area.scrollTop = 0;
+        renderCardGrid(updatedList, state.search.lastRenderMode, 0);
+        pushAppHistoryState('pageMore:' + pg.currentPage);
       }
     }
 
@@ -675,10 +720,15 @@
         </button>`;
       }
 
+      html += `<button onclick="scrollResultsToTop()" class="px-2.5 py-1 rounded-lg border theme-panel font-bold theme-text-sub hover:bg-emerald-500 hover:text-white">⬆ 先頭へ</button>`;
+
       btnsEl.innerHTML = html;
     }
 
     async function navigateToChannelDetailInApp(channelId, channelName, avatarUrl = '', videoIdForLookup = '', targetForModal = null) {
+      // 画面遷移前に現在の一覧（高評価や検索結果など）とスクロール位置を確実に履歴へ保存
+      syncCurrentSnapshotState();
+
       const modal = document.getElementById('search-modal');
       if (modal && modal.classList.contains('hidden')) {
         state.search.preferredTarget = targetForModal !== null ? targetForModal : (state.viewMode === 'single' ? 'single' : 0);
@@ -747,7 +797,7 @@
         id: resolvedChannelId.startsWith('UC') ? ('UU' + resolvedChannelId.substring(2)) : resolvedChannelId,
         title: resolvedName || 'チャンネル詳細',
         thumbnail: resolvedAvatar
-      });
+      }, true);
     }
 
     function openCardItemChannel(idx, mode, event) {
@@ -758,8 +808,9 @@
 
       if (item.platform === 'twitch') {
         const ch = item.channel || item.id;
+        syncCurrentSnapshotState();
         document.getElementById('search-query-input').value = ch;
-        setSearchTab('twitch');
+        setSearchTab('twitch', false);
         searchTwitchChannels(ch);
         return;
       }
@@ -811,25 +862,47 @@
       }
     }
 
+    function destroyYouTubePlayer(target) {
+      if (ytPlayers[target]) {
+        if (typeof ytPlayers[target].destroy === 'function') {
+          try { ytPlayers[target].destroy(); } catch (e) {}
+        }
+        ytPlayers[target] = null;
+      }
+    }
+
+    function handleAutoAdvancePlaylistOnEnd(target) {
+      const now = Date.now();
+      if (now - (lastAutoAdvanceAt[target] || 0) < 2500) return;
+      const media = target === 'single' ? state.single.media : state.multi.slots[target]?.media;
+      if (!media || media.platform !== 'youtube') return;
+      if (Array.isArray(media.queueItems) && media.queueItems.length > 1) {
+        lastAutoAdvanceAt[target] = now;
+        stepPlaylistVideo(target, 1);
+      }
+    }
+
     function createOrMountYouTubePlayer(target, iframeId) {
       const iframeEl = document.getElementById(iframeId);
       if (!iframeEl) return;
-      if (ytPlayers[target] && typeof ytPlayers[target].destroy === 'function') {
-        try { ytPlayers[target].destroy(); } catch (e) {}
-      }
-      ytPlayers[target] = null;
+      destroyYouTubePlayer(target);
 
       const initPlayer = () => {
         if (!window.YT || !window.YT.Player) return;
+        const currentEl = document.getElementById(iframeId);
+        if (!currentEl) return;
         try {
           ytPlayers[target] = new window.YT.Player(iframeId, {
             events: {
               onReady: () => {
                 if (typeof target === 'number') applyPlayerAudioToSlot(target);
-                pollActiveVideoChangeForTarget(target);
               },
               onStateChange: (ev) => {
-                if (ev.data === 1 || ev.data === 3 || ev.data === 5) pollActiveVideoChangeForTarget(target);
+                if (ev.data === 0) {
+                  handleAutoAdvancePlaylistOnEnd(target);
+                } else if (ev.data === 1) {
+                  pollActiveVideoChangeForTarget(target);
+                }
               }
             }
           });
@@ -839,9 +912,33 @@
       else setTimeout(initPlayer, 1000);
     }
 
+    window.addEventListener('message', (event) => {
+      if (!event.origin || !event.origin.includes('youtube.com')) return;
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data?.event === 'infoDelivery' && data?.info?.playerState === 0) {
+          const sIframe = document.getElementById('single-yt-iframe');
+          if (sIframe && event.source === sIframe.contentWindow) {
+            handleAutoAdvancePlaylistOnEnd('single');
+            return;
+          }
+          for (let i = 0; i < state.multi.slotCount; i++) {
+            const mIframe = document.getElementById(`slot-yt-iframe-${i}`);
+            if (mIframe && event.source === mIframe.contentWindow) {
+              handleAutoAdvancePlaylistOnEnd(i);
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+    });
+
     function pollActiveVideoChangeForTarget(target) {
       const media = target === 'single' ? state.single.media : state.multi.slots[target]?.media;
       if (!media || media.platform !== 'youtube') return;
+      // ユーザーが動画を明示選択した直後は古いプレイヤー状態による上書きを防止する
+      if (media.lastExplicitLoadAt && Date.now() - media.lastExplicitLoadAt < 4000) return;
+
       const p = ytPlayers[target];
       if (!p || typeof p.getVideoData !== 'function') return;
       try {
@@ -856,7 +953,7 @@
     setInterval(() => {
       if (state.viewMode === 'single') pollActiveVideoChangeForTarget('single');
       else for (let i = 0; i < state.multi.slotCount; i++) pollActiveVideoChangeForTarget(i);
-    }, 1500);
+    }, 2000);
 
     function handleDetectedYouTubeVideoChange(target, newVideoId, newTitle) {
       if (!newVideoId) return;
@@ -908,6 +1005,9 @@
           badge.textContent = isCurrent ? '▶ 再生中' : '';
           badge.classList.toggle('hidden', !isCurrent);
         }
+        if (isCurrent) {
+          try { r.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+        }
       });
     }
 
@@ -944,35 +1044,68 @@
 
     function captureCurrentViewSnapshot() {
       const modal = document.getElementById('search-modal');
+      const area = document.getElementById('search-results-area');
+      const qInput = document.getElementById('search-query-input');
+      const currentScroll = (!state.search.isLoadingView && area) ? area.scrollTop : (state.search.scrollTop || 0);
       return {
-        viewMode: state.viewMode, multiSlotCount: state.multi.slotCount,
+        viewMode: state.viewMode,
+        multiSlotCount: state.multi.slotCount,
         isModalOpen: Boolean(modal && !modal.classList.contains('hidden')),
         searchTab: state.search.tab,
+        ytFilter: state.search.ytFilter,
+        searchQuery: qInput ? qInput.value : '',
         sectionTitle: document.getElementById('current-section-title')?.textContent || '',
         results: state.search.results ? [...state.search.results] : [],
         lastRenderMode: state.search.lastRenderMode,
         pagination: { ...state.search.pagination },
+        scrollTop: currentScroll,
         activeChannel: state.search.activeChannel ? JSON.parse(JSON.stringify(state.search.activeChannel)) : null,
         activePlaylistContext: state.search.activePlaylistContext ? JSON.parse(JSON.stringify(state.search.activePlaylistContext)) : null
       };
     }
 
+    function syncCurrentSnapshotState() {
+      if (isHandlingPopState || currentNavIndex < 0 || !appNavStack[currentNavIndex]) return;
+      if (state.search.isLoadingView) {
+        const area = document.getElementById('search-results-area');
+        if (area && area.scrollTop > 0) appNavStack[currentNavIndex].scrollTop = area.scrollTop;
+        return;
+      }
+      appNavStack[currentNavIndex] = captureCurrentViewSnapshot();
+    }
+
     function pushAppHistoryState(label = '') {
       if (isHandlingPopState) return;
-      appNavStack.push(captureCurrentViewSnapshot());
-      if (appNavStack.length > 25) appNavStack.shift();
-      try { window.history.pushState({ depth: appNavStack.length - 1, label }, ''); } catch (e) {}
+      const snap = captureCurrentViewSnapshot();
+      if (currentNavIndex >= 0 && currentNavIndex < appNavStack.length - 1) {
+        appNavStack.splice(currentNavIndex + 1);
+      }
+      appNavStack.push(snap);
+      currentNavIndex = appNavStack.length - 1;
+      try {
+        if (currentNavIndex === 0 && (!window.history.state || window.history.state.navIndex === undefined)) {
+          window.history.replaceState({ navIndex: 0, label }, '');
+        } else {
+          window.history.pushState({ navIndex: currentNavIndex, label }, '');
+        }
+      } catch (e) {}
       updateBackButtonVisibility();
     }
 
     function updateBackButtonVisibility() {
       const backBtn = document.getElementById('btn-back-to-parent');
       if (!backBtn) return;
-      const show = appNavStack.length > 1 || state.search.activeChannel || state.search.activePlaylistContext;
+      const show = currentNavIndex > 0 || state.search.activeChannel || state.search.activePlaylistContext;
       backBtn.classList.toggle('hidden', !show);
     }
 
     function navigateBackInApp() {
+      if (currentNavIndex > 0) {
+        try {
+          window.history.back();
+          return;
+        } catch (e) {}
+      }
       if (state.search.activePlaylistContext) {
         state.search.activePlaylistContext = null;
         document.getElementById('playlist-detail-toolbar').classList.add('hidden');
@@ -984,38 +1117,89 @@
         state.search.activeChannel = null;
         document.getElementById('channel-detail-toolbar').classList.add('hidden');
         fetchMySubscriptions(false, true);
-        return;
-      }
-      if (appNavStack.length > 1) {
-        try { window.history.back(); } catch (e) {}
       }
     }
 
-    window.addEventListener('popstate', () => {
-      if (appNavStack.length > 1) {
-        appNavStack.pop();
-        const snap = appNavStack[appNavStack.length - 1];
-        if (!snap) return;
-        isHandlingPopState = true;
-        try {
-          if (snap.viewMode !== state.viewMode) setViewMode(snap.viewMode, true);
-          const modal = document.getElementById('search-modal');
-          if (snap.isModalOpen) {
-            modal.classList.remove('hidden');
-            state.search.tab = snap.searchTab || 'youtube';
-            state.search.activeChannel = snap.activeChannel || null;
-            state.search.activePlaylistContext = snap.activePlaylistContext || null;
-            state.search.results = snap.results || [];
-            state.search.lastRenderMode = snap.lastRenderMode || 'results';
-            if (snap.pagination) state.search.pagination = { ...snap.pagination };
-            syncModalToolbarsByState();
-            setSectionBanner(snap.sectionTitle || '一覧');
-            if (state.search.tab !== 'settings') renderCardGrid(state.search.results, state.search.lastRenderMode);
-          } else {
-            modal.classList.add('hidden');
+    function updateYtFilterButtonsUI() {
+      const filter = state.search.ytFilter || 'all';
+      const btnMap = [
+        { id: 'btn-filter-all', key: 'all', active: 'btn-mono font-bold' },
+        { id: 'btn-filter-video', key: 'video', active: 'btn-green font-bold' },
+        { id: 'btn-filter-shorts', key: 'shorts', active: 'btn-green font-bold' },
+        { id: 'btn-filter-live', key: 'live', active: 'btn-orange font-bold' }
+      ];
+      btnMap.forEach((b) => {
+        const el = document.getElementById(b.id);
+        if (el) el.className = 'px-2.5 py-1 rounded transition-colors ' + (b.key === filter ? b.active : 'theme-text-sub hover:opacity-80');
+      });
+    }
+
+    function restoreSnapshot(snap) {
+      if (!snap) return;
+      isHandlingPopState = true;
+      try {
+        if (snap.viewMode && snap.viewMode !== state.viewMode) {
+          setViewMode(snap.viewMode, true);
+        }
+        if (snap.multiSlotCount && snap.multiSlotCount !== state.multi.slotCount) {
+          state.multi.slotCount = snap.multiSlotCount;
+          updateModeButtonsUI();
+          if (state.viewMode === 'multi') {
+            renderMultiToolbarAudioButtons();
+            buildMultiViewDOM();
           }
-          updateBackButtonVisibility();
-        } finally { isHandlingPopState = false; }
+        }
+        const modal = document.getElementById('search-modal');
+        if (snap.isModalOpen) {
+          modal.classList.remove('hidden');
+          state.search.tab = snap.searchTab || 'youtube';
+          state.search.ytFilter = snap.ytFilter || 'all';
+          state.search.activeChannel = snap.activeChannel ? JSON.parse(JSON.stringify(snap.activeChannel)) : null;
+          state.search.activePlaylistContext = snap.activePlaylistContext ? JSON.parse(JSON.stringify(snap.activePlaylistContext)) : null;
+          state.search.results = snap.results ? [...snap.results] : [];
+          state.search.lastRenderMode = snap.lastRenderMode || 'results';
+          if (snap.pagination) {
+            state.search.pagination = { ...snap.pagination };
+            const pageSizeSelect = document.getElementById('page-size-select');
+            if (pageSizeSelect && snap.pagination.pageSize) {
+              pageSizeSelect.value = String(snap.pagination.pageSize);
+            }
+          }
+          const qInput = document.getElementById('search-query-input');
+          if (qInput && snap.searchQuery !== undefined) {
+            qInput.value = snap.searchQuery;
+            handleSearchQueryInputChanged(snap.searchQuery);
+          }
+          updateYtFilterButtonsUI();
+          syncModalToolbarsByState();
+          if (state.search.activeChannel) {
+            document.getElementById('channel-detail-avatar').src = state.search.activeChannel.thumbnail || 'https://placehold.co/40x40/18181b/10b981?text=CH';
+            document.getElementById('channel-detail-name').textContent = state.search.activeChannel.title || 'チャンネル';
+            document.getElementById('channel-search-input').value = state.search.activeChannel.query || '';
+            document.getElementById('btn-channel-search-clear').classList.toggle('hidden', !state.search.activeChannel.query);
+            updateChannelCategoryTabsUI();
+          }
+          setSectionBanner(snap.sectionTitle || '一覧');
+          if (state.search.tab !== 'settings') {
+            const targetList = getListByMode(state.search.lastRenderMode);
+            renderCardGrid(targetList, state.search.lastRenderMode, snap.scrollTop || 0);
+          }
+        } else {
+          modal.classList.add('hidden');
+        }
+        updateBackButtonVisibility();
+      } finally {
+        isHandlingPopState = false;
+      }
+    }
+
+    window.addEventListener('popstate', (event) => {
+      if (event.state && typeof event.state.navIndex === 'number' && appNavStack[event.state.navIndex]) {
+        currentNavIndex = event.state.navIndex;
+        restoreSnapshot(appNavStack[currentNavIndex]);
+      } else if (currentNavIndex > 0) {
+        currentNavIndex -= 1;
+        restoreSnapshot(appNavStack[currentNavIndex]);
       }
     });
 
@@ -1073,22 +1257,15 @@
       const originParam = window.location.protocol.startsWith('http') ? '&origin=' + encodeURIComponent(window.location.origin) : '';
       const baseParams = `autoplay=1&playsinline=1&rel=0&enablejsapi=1${originParam}`;
 
-      if (media.type === 'playlist' || (Array.isArray(media.queueVideoIds) && media.queueVideoIds.length > 1)) {
-        const listId = media.listId || media.id;
-        const qIds = Array.isArray(media.queueVideoIds) ? media.queueVideoIds.filter(Boolean) : [];
-        const firstId = media.currentVideoId || media.firstVideoId || qIds[0] || (media.type === 'video' ? media.id : null);
-
-        if (firstId) {
-          const startIdx = qIds.indexOf(firstId);
-          const orderedIds = startIdx !== -1 ? qIds.slice(startIdx).concat(qIds.slice(0, startIdx)) : [firstId, ...qIds.filter((id) => id !== firstId)];
-          const restIds = orderedIds.filter((id) => id !== firstId).slice(0, 45);
-          if (restIds.length > 0) return `https://www.youtube.com/embed/${encodeURIComponent(firstId)}?playlist=${encodeURIComponent(restIds.join(','))}&${baseParams}`;
-          if (listId && isPlaylistIdFormat(listId)) return `https://www.youtube.com/embed/${encodeURIComponent(firstId)}?list=${encodeURIComponent(listId)}&${baseParams}`;
-          return `https://www.youtube.com/embed/${encodeURIComponent(firstId)}?${baseParams}`;
-        }
-        return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}&${baseParams}`;
+      // 再生対象の動画IDが確定している場合は、YouTube埋め込みプレイヤーのplaylistパラメータによる別動画誤再生を防ぐため
+      // 必ず選択された動画ID単体の埋め込みURLを生成する（連続再生はアプリ側キューと終了検知で制御）
+      const targetVideoId = media.currentVideoId || media.firstVideoId || (!isPlaylistIdFormat(media.id) ? media.id : null);
+      if (targetVideoId && !isPlaylistIdFormat(targetVideoId)) {
+        return `https://www.youtube.com/embed/${encodeURIComponent(targetVideoId)}?${baseParams}`;
       }
-      return `https://www.youtube.com/embed/${encodeURIComponent(media.id)}?${baseParams}`;
+
+      const listId = media.listId || media.id;
+      return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}&${baseParams}`;
     }
 
     async function fetchPlaylistVideoItemsAndIds(listId, maxPages = 2) {
@@ -1458,6 +1635,7 @@
     }
 
     function setViewMode(mode, skipHistoryPush = false) {
+      if (!skipHistoryPush) syncCurrentSnapshotState();
       const prevMode = state.viewMode;
       state.viewMode = mode === 'single' ? 'single' : 'multi';
 
@@ -1596,13 +1774,14 @@
         const plData = await fetchPlaylistVideoItemsAndIds(mediaObj.listId || mediaObj.id, 1);
         if (plData.items.length > 0) {
           mediaObj.firstVideoId = mediaObj.firstVideoId || plData.videoIds[0];
-          mediaObj.currentVideoId = mediaObj.firstVideoId;
+          mediaObj.currentVideoId = mediaObj.currentVideoId || mediaObj.firstVideoId;
           mediaObj.queueVideoIds = plData.videoIds;
           mediaObj.queueItems = plData.items;
           if (!mediaObj.channelId && plData.items[0].channelId) mediaObj.channelId = plData.items[0].channelId;
           if (!mediaObj.author && plData.items[0].author) mediaObj.author = plData.items[0].author;
         }
       }
+      if (mediaObj) mediaObj.lastExplicitLoadAt = Date.now();
 
       state.single.media = mediaObj;
       state.single.forceChatMode = null;
@@ -1730,12 +1909,14 @@
     }
 
     function pauseSingleStream() {
+      destroyYouTubePlayer('single');
       const container = document.getElementById('single-video-container');
       if (container && state.single.media) container.innerHTML = '<div class="text-xs text-zinc-500">マルチモード移行中</div>';
       state.single.twitchPlayer = null;
     }
 
     function renderSingleMedia() {
+      destroyYouTubePlayer('single');
       const container = document.getElementById('single-video-container');
       const badge = document.getElementById('single-platform-badge');
       const media = state.single.media;
@@ -1944,7 +2125,7 @@
         const isCurrent = it.id === activeVid;
         const pubText = it.publishedText || formatPublishedDateText(it.publishedAt || '');
         return `
-          <div data-vid="${escapeHtml(it.id)}" onclick="jumpToPlaylistVideo(${targetArg}, ${idx})" class="p-2 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${isCurrent ? 'badge-green border-emerald-500 font-bold shadow-sm ring-1 ring-emerald-500/30' : 'theme-sub theme-border hover:border-emerald-500/50'}">
+          <div data-vid="${escapeHtml(it.id)}" onclick="jumpToPlaylistVideo(${targetArg}, ${idx}, '${escapeHtml(it.id)}')" class="p-2 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${isCurrent ? 'badge-green border-emerald-500 font-bold shadow-sm ring-1 ring-emerald-500/30' : 'theme-sub theme-border hover:border-emerald-500/50'}">
             <span class="text-xs w-6 text-center theme-text-muted shrink-0 font-mono">${idx + 1}</span>
             <div class="w-24 aspect-video rounded-lg overflow-hidden bg-black shrink-0 relative">
               <img src="${escapeHtml(it.thumbnail || `https://i.ytimg.com/vi/${it.id}/mqdefault.jpg`)}" class="w-full h-full object-cover" loading="lazy" />
@@ -1994,23 +2175,32 @@
       const activeVid = media.currentVideoId || media.firstVideoId || media.id;
       const curIdx = Math.max(0, media.queueItems.findIndex((it) => it.id === activeVid));
       const nextIdx = (curIdx + delta + media.queueItems.length) % media.queueItems.length;
-      jumpToPlaylistVideo(target, nextIdx);
+      const nextItem = media.queueItems[nextIdx];
+      jumpToPlaylistVideo(target, nextIdx, nextItem ? nextItem.id : null);
     }
 
-    function jumpToPlaylistVideo(target, indexInQueue) {
+    function jumpToPlaylistVideo(target, indexInQueue, expectedVideoId = null) {
       const media = target === 'single' ? state.single.media : state.multi.slots[target]?.media;
-      if (!media || !Array.isArray(media.queueItems) || !media.queueItems[indexInQueue]) return;
+      if (!media || !Array.isArray(media.queueItems) || media.queueItems.length === 0) return;
 
-      const selectedItem = media.queueItems[indexInQueue];
+      let resolvedIndex = indexInQueue;
+      if (expectedVideoId) {
+        const foundIdx = media.queueItems.findIndex((it) => it.id === expectedVideoId);
+        if (foundIdx !== -1) resolvedIndex = foundIdx;
+      }
+      const selectedItem = media.queueItems[resolvedIndex];
+      if (!selectedItem) return;
+
       const allIds = media.queueItems.map((it) => it.id);
       media.type = 'playlist';
       media.firstVideoId = selectedItem.id;
       media.currentVideoId = selectedItem.id;
+      media.lastExplicitLoadAt = Date.now();
       media.title = selectedItem.title;
       media.author = selectedItem.author;
       media.channelId = selectedItem.channelId || media.channelId;
       media.thumbnail = selectedItem.thumbnail;
-      media.queueVideoIds = allIds.slice(indexInQueue).concat(allIds.slice(0, indexInQueue));
+      media.queueVideoIds = allIds.slice(resolvedIndex).concat(allIds.slice(0, resolvedIndex));
 
       updateFavButtonUI(target);
       updateChannelButtonUI(target);
@@ -2235,6 +2425,7 @@
 
     function pauseAllMultiStreams() {
       for (let i = 0; i < state.multi.slots.length; i++) {
+        destroyYouTubePlayer(i);
         const vc = document.getElementById(`slot-video-container-${i}`);
         if (vc && state.multi.slots[i].media) vc.innerHTML = `<div class="text-xs text-zinc-500">一時停止中</div>`;
         state.multi.slots[i].twitchPlayer = null;
@@ -2242,6 +2433,7 @@
     }
 
     function renderMultiSlotMedia(idx) {
+      destroyYouTubePlayer(idx);
       const slot = state.multi.slots[idx];
       const container = document.getElementById(`slot-video-container-${idx}`);
       const badge = document.getElementById(`slot-badge-${idx}`);
@@ -2771,8 +2963,10 @@
       }
     }
 
-    async function openChannelDetailView(channelItem) {
+    async function openChannelDetailView(channelItem, preSynced = false) {
       if (!channelItem) return;
+      if (!preSynced) syncCurrentSnapshotState();
+
       state.search.activePlaylistContext = null;
       document.getElementById('playlist-detail-toolbar').classList.add('hidden');
       const rawId = channelItem.channelId || channelItem.id || '';
@@ -2783,6 +2977,8 @@
         channelId, uploadsPlaylistId, title: channelItem.title || 'チャンネル', thumbnail: channelItem.thumbnail || '',
         tab: 'all', query: '', allUploads: [], nextPageToken: '', hasMoreUploads: true, pagesFetched: 0, searchItems: null, playlists: null
       };
+      state.search.scrollTop = 0;
+      pushAppHistoryState(`channel:${channelId}:all`);
 
       if (!state.search.activeChannel.thumbnail || state.search.activeChannel.title === 'チャンネル詳細') {
         try {
@@ -2838,7 +3034,7 @@
         } catch (e) {}
       }
 
-      await renderActiveChannelContent(true);
+      await renderActiveChannelContent(false);
     }
 
     async function loadMoreChannelUploads() {
@@ -2876,10 +3072,13 @@
 
     async function setChannelCategoryTab(tabKey) {
       if (!state.search.activeChannel) return;
+      syncCurrentSnapshotState();
       state.search.activeChannel.tab = tabKey;
       state.search.pagination.currentPage = 1;
+      state.search.scrollTop = 0;
+      pushAppHistoryState(`channel:${state.search.activeChannel.channelId}:${tabKey}`);
       updateChannelCategoryTabsUI();
-      await renderActiveChannelContent(true);
+      await renderActiveChannelContent(false);
     }
 
     async function handleChannelSearchSubmit(e) {
@@ -2888,8 +3087,11 @@
       if (!ch) return;
       const q = document.getElementById('channel-search-input').value.trim();
       if (!q) { clearChannelSearch(); return; }
+      syncCurrentSnapshotState();
       ch.query = q;
       state.search.pagination.currentPage = 1;
+      state.search.scrollTop = 0;
+      pushAppHistoryState(`channelSearch:${ch.channelId}:${q}`);
       document.getElementById('btn-channel-search-clear').classList.remove('hidden');
       showSearchAreaMessage(`「${ch.title}」内から「${q}」を検索中...`, '', false);
       try {
@@ -2906,16 +3108,19 @@
       } catch (err) {
         ch.searchItems = (ch.allUploads || []).filter((it) => (it.title || '').toLowerCase().includes(q.toLowerCase()));
       }
-      await renderActiveChannelContent(true);
+      await renderActiveChannelContent(false);
     }
 
     function clearChannelSearch() {
       if (!state.search.activeChannel) return;
+      syncCurrentSnapshotState();
       state.search.activeChannel.query = ''; state.search.activeChannel.searchItems = null;
       state.search.pagination.currentPage = 1;
+      state.search.scrollTop = 0;
+      pushAppHistoryState(`channelSearchClear:${state.search.activeChannel.channelId}`);
       document.getElementById('channel-search-input').value = '';
       document.getElementById('btn-channel-search-clear').classList.add('hidden');
-      renderActiveChannelContent(true);
+      renderActiveChannelContent(false);
     }
 
     async function renderActiveChannelContent(pushHistory = false) {
@@ -2982,7 +3187,7 @@
       const mediaObj = {
         platform: 'youtube', type: 'playlist', id: ctx.listId, listId: ctx.listId, title: ctx.title,
         author: firstItem.author || '', channelId: firstItem.channelId || '',
-        firstVideoId: ctx.videoIds[0], currentVideoId: ctx.videoIds[0],
+        firstVideoId: ctx.videoIds[0], currentVideoId: ctx.videoIds[0], lastExplicitLoadAt: Date.now(),
         queueVideoIds: ctx.videoIds, queueItems: ctx.items || [], mediaBadgeType: 'playlist'
       };
       closeSearchModal();
@@ -2992,7 +3197,10 @@
 
     async function expandPlaylistItems(listId, listTitle) {
       if (!listId) return;
+      syncCurrentSnapshotState();
       resetPagination('playlist_items', listId, '');
+      state.search.scrollTop = 0;
+      pushAppHistoryState(`playlistExpand:${listId}`);
       setSectionBanner(`📂 プレイリスト「${listTitle || listId}」を読み込み中...`);
       showSearchAreaMessage('プレイリスト内の動画一覧を取得しています...', '', false);
       const plData = await fetchPlaylistVideoItemsAndIds(listId, 3);
@@ -3001,8 +3209,7 @@
         renderPlaylistDetailActionBar(listId, listTitle || listId, plData.videoIds);
         state.search.results = plData.items;
         setSectionBanner(`📂 プレイリスト「${listTitle || listId}」 (${plData.items.length}件)`);
-        renderCardGrid(plData.items, 'results');
-        pushAppHistoryState(`playlistExpand:${listId}`);
+        renderCardGrid(plData.items, 'results', 0);
         return;
       }
       showSearchAreaMessage(`プレイリスト (${listId}) の動画を取得できませんでした。`, '', true);
@@ -3043,139 +3250,32 @@
     }
 
     function clearSearchQueryToRecommendations() {
+      syncCurrentSnapshotState();
       const input = document.getElementById('search-query-input');
       if (input) input.value = '';
       handleSearchQueryInputChanged('');
+      state.search.scrollTop = 0;
+      pushAppHistoryState('clearSearch');
       if (state.search.tab === 'twitch') loadTwitchRecommendations();
       else loadYouTubeRecommendations();
     }
 
-    async function loadYouTubeRecommendations() {
-      state.search.activePlaylistContext = null;
-      document.getElementById('playlist-detail-toolbar').classList.add('hidden');
-
-      const filter = state.search.ytFilter;
-      const interestQuery = extractCleanInterestQuery();
-      resetPagination('yt_recommend', interestQuery, '');
-      setSectionBanner('✨ YouTube おすすめ動画を読み込み中...');
-      showSearchAreaMessage('視聴履歴・登録チャンネル・人気トレンドからおすすめを取得しています...', '', false);
-
-      let collectedItems = [];
-      let nextToken = '';
-
-      const localPool = [
-        ...state.search.history.filter((h) => h.platform === 'youtube' && !isPlaylistItemObject(h)),
-        ...state.search.libraryCache.liked,
-        ...state.search.favorites.filter((f) => f.platform === 'youtube' && !isPlaylistItemObject(f))
-      ];
-
-      if (state.search.ytApiKey || isOAuthTokenValid()) {
-        if (filter === 'live' || filter === 'shorts' || interestQuery) {
-          try {
-            const qStr = filter === 'shorts' ? `${interestQuery || 'ゲーム 話題'} #shorts` : (interestQuery || 'ゲーム 実況 ライブ 配信');
-            const params = { part: 'snippet', q: qStr, type: 'video', maxResults: '50' };
-            if (filter === 'live') params.eventType = 'live';
-            if (filter === 'shorts') params.videoDuration = 'short';
-
-            const data = await fetchYouTubeOfficialApi('search', params, false);
-            nextToken = data.nextPageToken || '';
-            state.search.pagination.sourceType = 'yt_search';
-            state.search.pagination.query = qStr;
-            const raw = (data.items || []).map((it) => ({
-              platform: 'youtube', type: 'video', itemKind: 'video', id: it.id.videoId,
-              channelId: it.snippet?.channelId || '',
-              publishedAt: it.snippet?.publishedAt || '',
-              publishedText: formatPublishedDateText(it.snippet?.publishedAt || ''),
-              isShort: filter === 'shorts' || detectIsShortText(it.snippet?.title),
-              isLive: it.snippet?.liveBroadcastContent === 'live',
-              title: it.snippet?.title || '', author: it.snippet?.channelTitle || '',
-              thumbnail: it.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${it.id.videoId}/mqdefault.jpg`
-            }));
-            collectedItems = await enrichYouTubeVideoItems(raw);
-          } catch (e) {}
-        }
-
-        if (collectedItems.length === 0) {
-          try {
-            const trendData = await fetchYouTubeOfficialApi('videos', {
-              part: 'snippet,contentDetails,liveStreamingDetails',
-              chart: 'mostPopular', regionCode: 'JP', maxResults: '50'
-            }, false);
-            const trendRaw = (trendData.items || []).map((v) => ({
-              platform: 'youtube', type: 'video', itemKind: 'video', id: v.id,
-              channelId: v.snippet?.channelId || '',
-              publishedAt: v.snippet?.publishedAt || '',
-              publishedText: formatPublishedDateText(v.snippet?.publishedAt || ''),
-              title: v.snippet?.title || '', author: v.snippet?.channelTitle || '',
-              thumbnail: v.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`
-            }));
-            collectedItems = await enrichYouTubeVideoItems(trendRaw);
-          } catch (e) {}
-        }
-      }
-
-      if (collectedItems.length === 0) {
-        const qFallback = filter === 'shorts' ? 'shorts' : (interestQuery || 'ゲーム配信');
-        try {
-          const data = await fetchFromPipedParallel(`/search?q=${encodeURIComponent(qFallback)}&filter=${filter === 'live' ? 'livestreams' : 'videos'}`);
-          collectedItems = parsePipedSearchItems(data?.items || [], filter === 'live', filter === 'shorts');
-        } catch (e) {}
-      }
-
-      state.search.pagination.nextPageToken = nextToken;
-      const seenIds = new Set();
-      const mergedAll = [];
-      [...localPool.slice(0, 8), ...collectedItems, ...FALLBACK_RECOMMENDED_VIDEOS].forEach((item) => {
-        if (item && item.id && !seenIds.has(item.id)) {
-          seenIds.add(item.id);
-          if (item.publishedAt && !item.publishedText) item.publishedText = formatPublishedDateText(item.publishedAt);
-          mergedAll.push(item);
-        }
-      });
-
-      const filtered = filterSearchItemsByCategory(mergedAll, filter);
-      state.search.results = filtered.length > 0 ? filtered : mergedAll;
-      const labelMap = { all: 'すべて', video: '🎬 動画', shorts: '📱 ショート', live: '🟠 LIVE' };
-      setSectionBanner(`✨ YouTube おすすめ [${labelMap[filter]}] (${state.search.results.length}${nextToken ? '+' : ''}件)`);
-      renderCardGrid(state.search.results, 'results');
-    }
-
-    function parsePipedSearchItems(rawItems, onlyLive = false, onlyShorts = false) {
-      return (rawItems || [])
-        .filter((it) => it.url && (it.url.includes('v=') || it.url.includes('/shorts/')))
-        .map((it) => {
-          const vid = it.url.includes('/shorts/') ? it.url.split('/shorts/')[1]?.split(/[?&]/)[0] : it.url.split('v=')[1]?.split('&')[0];
-          const chId = it.uploaderUrl?.includes('/channel/') ? it.uploaderUrl.split('/channel/')[1]?.split(/[/?&]/)[0] : '';
-          const isLive = Boolean(onlyLive || it.duration === -1 || it.isLive);
-          const isShort = Boolean(!isLive && (onlyShorts || it.isShort || it.url.includes('/shorts/') || (it.duration > 0 && it.duration <= 65)));
-          const durText = it.duration > 0 ? formatDurationSeconds(it.duration) : '';
-          const pubInfo = extractPipedPublishedInfo(it);
-          return {
-            platform: 'youtube', type: 'video', itemKind: 'video',
-            mediaBadgeType: isLive ? 'live' : (isShort ? 'short' : 'video'), durationText: durText,
-            id: vid, channelId: chId || '',
-            publishedAt: pubInfo.publishedAt,
-            publishedText: pubInfo.publishedText || (isLive ? 'LIVE配信中' : ''),
-            isShort, isLive, title: it.title || '動画', author: it.uploaderName || '',
-            thumbnail: it.thumbnail || `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
-            viewers: isLive ? '🟠 LIVE配信中' : (isShort ? '📱 ショート' : `🎬 動画 ${durText}`)
-          };
-        });
-    }
-
     async function searchYouTubeVideos(query, appendNextPage = false) {
-      state.search.activePlaylistContext = null;
-      document.getElementById('playlist-detail-toolbar').classList.add('hidden');
+      if (!appendNextPage) {
+        syncCurrentSnapshotState();
+        state.search.activePlaylistContext = null;
+        document.getElementById('playlist-detail-toolbar').classList.add('hidden');
+        resetPagination('yt_search', query, '');
+        state.search.scrollTop = 0;
+        pushAppHistoryState(`ytSearch:${query}`);
+        setSectionBanner(`YouTube「${query}」を検索中...`);
+        showSearchAreaMessage('YouTubeを検索しています...', '', false);
+      }
+
       const filter = state.search.ytFilter;
       const onlyLive = filter === 'live';
       const onlyShorts = filter === 'shorts';
       const effectiveQuery = onlyShorts && !/#shorts/i.test(query) ? `${query} #shorts` : query;
-
-      if (!appendNextPage) {
-        resetPagination('yt_search', query, '');
-        setSectionBanner(`YouTube「${query}」を検索中...`);
-        showSearchAreaMessage('YouTubeを検索しています...', '', false);
-      }
 
       if (state.search.ytApiKey || isOAuthTokenValid()) {
         try {
@@ -3212,8 +3312,7 @@
 
           state.search.results = appendNextPage ? [...state.search.results, ...dedupedBatch] : dedupedBatch;
           setSectionBanner(`YouTube「${query}」の検索結果 (${state.search.results.length}${data.nextPageToken ? '+' : ''}件)`);
-          renderCardGrid(state.search.results, 'results');
-          if (!appendNextPage) pushAppHistoryState(`ytSearch:${query}`);
+          renderCardGrid(state.search.results, 'results', appendNextPage ? null : 0);
           return;
         } catch (err) {}
       }
@@ -3225,7 +3324,7 @@
           state.search.results = items;
           state.search.pagination.nextPageToken = '';
           setSectionBanner(`YouTube「${query}」の検索結果 (${items.length}件)`);
-          renderCardGrid(items, 'results');
+          renderCardGrid(items, 'results', 0);
           return;
         }
       } catch (e) {}
@@ -3318,7 +3417,10 @@
     }
 
     async function searchTwitchChannels(query) {
+      syncCurrentSnapshotState();
       resetPagination('twitch_search', query, '');
+      state.search.scrollTop = 0;
+      pushAppHistoryState(`twSearch:${query}`);
       const cleanId = query.trim().replace(/^@/, '').toLowerCase();
       setSectionBanner(`Twitch「${cleanId}」の配信状態を確認中...`);
       showSearchAreaMessage(`Twitch「${cleanId}」の配信ステータスとプレビューを取得しています...`, '', false);
@@ -3334,13 +3436,17 @@
       await enrichTwitchChannelItemsWithLiveStatus([item]);
       state.search.results = [item];
       setSectionBanner(`Twitch「${cleanId}」 — ${item.isLive ? '🟠 現在LIVE配信中！' : '⚫ 現在オフライン (アーカイブ/チャット視聴可)'}`);
-      renderCardGrid(state.search.results, 'results');
-      pushAppHistoryState(`twSearch:${query}`);
+      renderCardGrid(state.search.results, 'results', 0);
     }
 
     function openSearchModal(preferredTarget = null, initialTab = null) {
-      state.search.preferredTarget = preferredTarget;
       const modal = document.getElementById('search-modal');
+      const wasHidden = modal.classList.contains('hidden');
+      if (wasHidden) {
+        syncCurrentSnapshotState();
+      }
+
+      state.search.preferredTarget = preferredTarget;
       const indicator = document.getElementById('search-target-indicator');
 
       if (preferredTarget === 'single' || (preferredTarget === null && state.viewMode === 'single')) indicator.textContent = '反映先: シングル視聴';
@@ -3349,12 +3455,13 @@
 
       updateYouTubeAuthBadgeUI();
       modal.classList.remove('hidden');
-      setSearchTab(initialTab || state.search.tab);
+      setSearchTab(initialTab || state.search.tab, true, wasHidden);
     }
 
     function closeSearchModal() {
       const modal = document.getElementById('search-modal');
       if (!modal.classList.contains('hidden')) {
+        syncCurrentSnapshotState();
         modal.classList.add('hidden');
         pushAppHistoryState('modalClosed');
       }
@@ -3416,11 +3523,19 @@
       }
     }
 
-    function setSearchTab(tab) {
+    function setSearchTab(tab, pushHistory = true, preSynced = false) {
+      if (pushHistory && !preSynced) {
+        syncCurrentSnapshotState();
+      }
       state.search.tab = tab;
       state.search.activePlaylistContext = null;
-      if (tab !== 'subs') state.search.activeChannel = null;
+      state.search.activeChannel = null;
+      state.search.scrollTop = 0;
       syncModalToolbarsByState();
+
+      if (pushHistory) {
+        pushAppHistoryState('tab:' + tab);
+      }
 
       const qInput = document.getElementById('search-query-input');
       const hasQuery = Boolean(qInput && qInput.value.trim().length > 0);
@@ -3436,31 +3551,24 @@
       } else if (tab === 'liked') {
         fetchMyLikedVideos(false);
       } else if (tab === 'subs') {
-        if (state.search.activeChannel) renderActiveChannelContent(true);
-        else fetchMySubscriptions(false);
+        fetchMySubscriptions(false);
       } else if (tab === 'history') {
         resetPagination('history', '', '');
         setSectionBanner(`🕒 再生履歴 (${state.search.history.length}件)`);
-        renderCardGrid(state.search.history, 'history');
+        renderCardGrid(state.search.history, 'history', 0);
       } else if (tab === 'favorites') {
         resetPagination('favorites', '', '');
         setSectionBanner(`★ お気に入り (${state.search.favorites.length}件)`);
-        renderCardGrid(state.search.favorites, 'favorites');
+        renderCardGrid(state.search.favorites, 'favorites', 0);
       }
     }
 
     function setYtSearchFilter(filter) {
+      syncCurrentSnapshotState();
       state.search.ytFilter = filter;
-      const btnMap = [
-        { id: 'btn-filter-all', key: 'all', active: 'btn-mono font-bold' },
-        { id: 'btn-filter-video', key: 'video', active: 'btn-green font-bold' },
-        { id: 'btn-filter-shorts', key: 'shorts', active: 'btn-green font-bold' },
-        { id: 'btn-filter-live', key: 'live', active: 'btn-orange font-bold' }
-      ];
-      btnMap.forEach((b) => {
-        const el = document.getElementById(b.id);
-        if (el) el.className = 'px-2.5 py-1 rounded transition-colors ' + (b.key === filter ? b.active : 'theme-text-sub hover:opacity-80');
-      });
+      state.search.scrollTop = 0;
+      updateYtFilterButtonsUI();
+      pushAppHistoryState('ytFilter:' + filter);
 
       const q = (document.getElementById('search-query-input')?.value || '').trim();
       if (state.search.tab === 'youtube') {
@@ -3471,9 +3579,11 @@
     }
 
     function showSearchAreaMessage(mainText, subText = '', isError = false) {
+      state.search.isLoadingView = true;
       const area = document.getElementById('search-results-area');
       const pgBar = document.getElementById('pagination-bar');
       if (pgBar) pgBar.classList.add('hidden');
+      updateFloatingScrollTopButton();
       area.className = 'flex-1 min-h-0 overflow-y-auto p-3 grid grid-cols-1 gap-3 auto-rows-max';
       area.innerHTML = `<div class="col-span-full p-8 text-center rounded-xl border theme-border theme-sub space-y-2"><p class="text-xs font-semibold ${isError ? 'text-orange-500' : 'theme-text'}">${escapeHtml(mainText)}</p>${subText ? `<p class="text-[11px] theme-text-muted">${escapeHtml(subText)}</p>` : ''}</div>`;
     }
@@ -3488,27 +3598,148 @@
       }
       const directMedia = parseMediaInput(q);
       if (directMedia && (q.includes('http') || q.includes('youtu') || q.includes('twitch.tv') || directMedia.type === 'playlist')) {
-        if (directMedia.type === 'playlist') { expandPlaylistItems(directMedia.listId || directMedia.id, `プレイリスト (${directMedia.id})`); return; }
+        if (directMedia.type === 'playlist') {
+          expandPlaylistItems(directMedia.listId || directMedia.id, `プレイリスト (${directMedia.id})`);
+          return;
+        }
         closeSearchModal();
         applyMediaToTarget(directMedia, state.search.preferredTarget);
         return;
       }
       if (state.search.tab === 'twitch') await searchTwitchChannels(q);
-      else await searchYouTubeVideos(q);
+      else await searchYouTubeVideos(q, false);
     }
 
-    function isFavorite(item) { return state.search.favorites.some((f) => f.platform === item.platform && f.id === item.id); }
+    function parsePipedSearchItems(rawItems, onlyLive = false, onlyShorts = false) {
+      return (rawItems || [])
+        .filter((it) => it.url && (it.url.includes('v=') || it.url.includes('/shorts/')))
+        .map((it) => {
+          const vid = it.url.includes('/shorts/') ? it.url.split('/shorts/')[1]?.split(/[?&]/)[0] : it.url.split('v=')[1]?.split('&')[0];
+          const chId = it.uploaderUrl?.includes('/channel/') ? it.uploaderUrl.split('/channel/')[1]?.split(/[/?&]/)[0] : '';
+          const isLive = Boolean(onlyLive || it.duration === -1);
+          const isShort = Boolean(!isLive && (onlyShorts || it.isShort || it.url.includes('/shorts/') || (it.duration > 0 && it.duration <= 65)));
+          const durText = it.duration > 0 ? formatDurationSeconds(it.duration) : '';
+          const pubInfo = extractPipedPublishedInfo(it);
+          return {
+            platform: 'youtube', type: 'video', itemKind: 'video',
+            mediaBadgeType: isLive ? 'live' : (isShort ? 'short' : 'video'), durationText: durText,
+            id: vid, channelId: chId || '',
+            publishedAt: pubInfo.publishedAt, publishedText: pubInfo.publishedText,
+            isShort, isLive, title: it.title || '動画', author: it.uploaderName || '',
+            thumbnail: it.thumbnail || `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
+            viewers: isLive ? '🟠 LIVE配信中' : (isShort ? '📱 ショート' : `🎬 動画 ${durText}`)
+          };
+        })
+        .filter((it) => it.id);
+    }
+
+    async function loadYouTubeRecommendations() {
+      state.search.activePlaylistContext = null;
+      document.getElementById('playlist-detail-toolbar').classList.add('hidden');
+      resetPagination('yt_recommend', '', '');
+
+      const filter = state.search.ytFilter;
+      const interestQuery = extractCleanInterestQuery();
+      setSectionBanner('✨ YouTube おすすめ動画を読み込み中...');
+      showSearchAreaMessage('視聴履歴・登録チャンネル・人気トレンドからおすすめを取得しています...', '', false);
+
+      let collectedItems = [];
+      const localPool = [
+        ...state.search.history.filter((h) => h.platform === 'youtube' && !isPlaylistItemObject(h)),
+        ...state.search.libraryCache.liked,
+        ...state.search.favorites.filter((f) => f.platform === 'youtube' && !isPlaylistItemObject(f))
+      ];
+
+      if (state.search.ytApiKey || isOAuthTokenValid()) {
+        if (filter === 'live' || filter === 'shorts' || interestQuery) {
+          try {
+            const qStr = filter === 'shorts' ? `${interestQuery || 'ゲーム 話題'} #shorts` : (interestQuery || 'ゲーム 実況 ライブ 配信');
+            const params = { part: 'snippet', q: qStr, type: 'video', maxResults: '36' };
+            if (filter === 'live') params.eventType = 'live';
+            if (filter === 'shorts') params.videoDuration = 'short';
+
+            const data = await fetchYouTubeOfficialApi('search', params, false);
+            const raw = (data.items || []).map((it) => {
+              const pubRaw = it.snippet?.publishedAt || it.snippet?.publishTime || '';
+              return {
+                platform: 'youtube', type: 'video', itemKind: 'video', id: it.id.videoId,
+                channelId: it.snippet?.channelId || '',
+                publishedAt: pubRaw,
+                publishedText: formatPublishedDateText(pubRaw),
+                isShort: filter === 'shorts' || detectIsShortText(it.snippet?.title),
+                isLive: it.snippet?.liveBroadcastContent === 'live',
+                title: it.snippet?.title || '', author: it.snippet?.channelTitle || '',
+                thumbnail: it.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${it.id.videoId}/mqdefault.jpg`
+              };
+            });
+            collectedItems = await enrichYouTubeVideoItems(raw);
+          } catch (e) {}
+        }
+
+        if (collectedItems.length === 0) {
+          try {
+            const trendData = await fetchYouTubeOfficialApi('videos', {
+              part: 'snippet,contentDetails,liveStreamingDetails',
+              chart: 'mostPopular', regionCode: 'JP', maxResults: '36'
+            }, false);
+            const trendRaw = (trendData.items || []).map((v) => ({
+              platform: 'youtube', type: 'video', itemKind: 'video', id: v.id,
+              channelId: v.snippet?.channelId || '',
+              publishedAt: v.snippet?.publishedAt || '',
+              publishedText: formatPublishedDateText(v.snippet?.publishedAt || ''),
+              title: v.snippet?.title || '', author: v.snippet?.channelTitle || '',
+              thumbnail: v.snippet?.thumbnails?.medium?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`
+            }));
+            collectedItems = await enrichYouTubeVideoItems(trendRaw);
+          } catch (e) {}
+        }
+      }
+
+      if (collectedItems.length === 0) {
+        try {
+          const qFallback = filter === 'shorts' ? 'shorts' : (interestQuery || 'ゲーム配信');
+          const data = await fetchFromPipedParallel(`/search?q=${encodeURIComponent(qFallback)}&filter=${filter === 'live' ? 'livestreams' : 'videos'}`);
+          collectedItems = parsePipedSearchItems(data?.items || [], filter === 'live', filter === 'shorts');
+        } catch (e) {}
+      }
+
+      const seenIds = new Set();
+      const mergedAll = [];
+      [...localPool.slice(0, 8), ...collectedItems, ...FALLBACK_RECOMMENDED_VIDEOS].forEach((item) => {
+        if (item && item.id && !seenIds.has(item.id)) {
+          seenIds.add(item.id);
+          if (item.publishedAt && !item.publishedText) item.publishedText = formatPublishedDateText(item.publishedAt);
+          mergedAll.push(item);
+        }
+      });
+
+      const filtered = filterSearchItemsByCategory(mergedAll, filter);
+      const finalItems = filtered.length > 0 ? filtered : mergedAll;
+      state.search.results = finalItems;
+      const labelMap = { all: 'すべて', video: '🎬 動画', shorts: '📱 ショート', live: '🟠 LIVE' };
+      setSectionBanner(`✨ YouTube おすすめ [${labelMap[filter]}] (${finalItems.length}件)`);
+      renderCardGrid(finalItems, 'results');
+    }
+
+    function isFavorite(item) {
+      return state.search.favorites.some((f) => f.platform === item.platform && f.id === item.id);
+    }
 
     function toggleFavoriteItem(idx) {
       const list = getListByMode(state.search.lastRenderMode);
       const item = list[idx];
       if (!item) return;
-      if (isFavorite(item)) state.search.favorites = state.search.favorites.filter((f) => !(f.platform === item.platform && f.id === item.id));
-      else state.search.favorites.unshift(item);
+      if (isFavorite(item)) {
+        state.search.favorites = state.search.favorites.filter((f) => !(f.platform === item.platform && f.id === item.id));
+        showToast('お気に入りから解除しました');
+      } else {
+        state.search.favorites.unshift(item);
+        showToast('★ お気に入りに追加しました');
+      }
       try { localStorage.setItem(STORAGE_KEYS.FAV, JSON.stringify(state.search.favorites)); } catch (e) {}
       updateFavButtonUI('single');
       for (let i = 0; i < state.multi.slotCount; i++) updateFavButtonUI(i);
-      renderCardGrid(list, state.search.lastRenderMode);
+      renderCardGrid(list, state.search.lastRenderMode, state.search.scrollTop);
     }
 
     function buildMediaKindBadgeHtml(item) {
@@ -3547,14 +3778,15 @@
               </div>
             </div>
           `;
+        } else {
+          return `
+            <div class="${sizeClass} bg-gradient-to-br from-purple-950 via-zinc-900 to-zinc-950 relative overflow-hidden flex flex-col items-center justify-center gap-1.5 p-2 select-none">
+              <img src="${escapeHtml(avatarUrl)}" class="w-12 h-12 rounded-full object-cover border-2 border-purple-400/50 shadow-md bg-zinc-800" onerror="this.style.display='none'" />
+              <span class="text-xs font-extrabold text-zinc-100 tracking-tight truncate max-w-full">${escapeHtml(login)}</span>
+              <span class="text-[10px] text-purple-300/80 font-medium">Twitch Channel</span>
+            </div>
+          `;
         }
-        return `
-          <div class="${sizeClass} bg-gradient-to-br from-purple-950 via-zinc-900 to-zinc-950 relative overflow-hidden flex flex-col items-center justify-center gap-1.5 p-2 select-none">
-            <img src="${escapeHtml(avatarUrl)}" class="w-12 h-12 rounded-full object-cover border-2 border-purple-400/50 shadow-md bg-zinc-800" onerror="this.style.display='none'" />
-            <span class="text-xs font-extrabold text-zinc-100 tracking-tight truncate max-w-full">${escapeHtml(login)}</span>
-            <span class="text-[10px] text-purple-300/80 font-medium">Twitch Channel</span>
-          </div>
-        `;
       }
 
       if (item.thumbnail) {
@@ -3565,16 +3797,19 @@
           </div>
         `;
       }
-      return `<div class="${sizeClass} bg-zinc-900 flex items-center justify-center text-white text-xs font-bold">${escapeHtml(item.platform.toUpperCase())}</div>`;
+      return `<div class="${sizeClass} bg-zinc-900 flex items-center justify-center text-white text-xs font-bold">${escapeHtml((item.platform || 'MEDIA').toUpperCase())}</div>`;
     }
 
-    function renderCardGrid(items, mode) {
+    function renderCardGrid(items, mode, restoreScrollTop = null) {
+      state.search.isLoadingView = false;
       state.search.lastRenderMode = mode;
       const area = document.getElementById('search-results-area');
       area.innerHTML = '';
 
       if (!items || items.length === 0) {
         showSearchAreaMessage('該当する動画・配信が見つかりませんでした。', '', false);
+        state.search.isLoadingView = false;
+        syncCurrentSnapshotState();
         return;
       }
 
@@ -3721,6 +3956,17 @@
         }
         area.appendChild(card);
       });
+
+      const targetScroll = restoreScrollTop !== null ? restoreScrollTop : state.search.scrollTop;
+      if (targetScroll >= 0) {
+        area.scrollTop = targetScroll;
+        state.search.scrollTop = targetScroll;
+        requestAnimationFrame(() => {
+          area.scrollTop = targetScroll;
+          updateFloatingScrollTopButton();
+        });
+      }
+      syncCurrentSnapshotState();
     }
 
     function getListByMode(mode) {
@@ -3745,6 +3991,9 @@
       if (!item) return;
       if (item.itemKind === 'channel') { openChannelDetailView(item); return; }
 
+      // モーダルを閉じる前に現在の一覧画面とスクロール位置を確実にスナップショット保存
+      syncCurrentSnapshotState();
+
       const isPlaylist = isPlaylistItemObject(item);
       const isShort = Boolean(!isPlaylist && (item.isShort || detectIsShortText(item.title)));
       const isLive = Boolean(!isPlaylist && (item.isLive || item.mediaBadgeType === 'live'));
@@ -3754,14 +4003,17 @@
       let activeListId = isPlaylist ? (item.listId || item.id) : null;
 
       if (!isPlaylist && !isShort && state.search.activePlaylistContext && Array.isArray(state.search.activePlaylistContext.videoIds)) {
-        const startPos = state.search.activePlaylistContext.videoIds.indexOf(item.id);
+        const allItems = state.search.activePlaylistContext.items || [];
+        const allIds = state.search.activePlaylistContext.videoIds;
+        let startPos = (allItems[idx] && allItems[idx].id === item.id) ? idx : allIds.indexOf(item.id);
         if (startPos !== -1) {
-          const allIds = state.search.activePlaylistContext.videoIds;
-          queueIds = allIds.slice(startPos).concat(allIds.slice(0, startPos)).slice(0, 45);
-          queueItems = state.search.activePlaylistContext.items || [];
+          queueIds = allIds.slice(startPos).concat(allIds.slice(0, startPos));
+          queueItems = allItems;
           activeListId = state.search.activePlaylistContext.listId;
         }
       }
+
+      const selectedVideoId = isPlaylist ? (item.firstVideoId || null) : item.id;
 
       const mediaObj = {
         platform: item.platform,
@@ -3770,8 +4022,9 @@
         channelId: item.channelId || '',
         publishedAt: item.publishedAt || '',
         publishedText: item.publishedText || formatPublishedDateText(item.publishedAt || ''),
-        firstVideoId: isPlaylist ? (item.firstVideoId || null) : item.id,
-        currentVideoId: isPlaylist ? (item.firstVideoId || null) : item.id,
+        firstVideoId: selectedVideoId,
+        currentVideoId: selectedVideoId,
+        lastExplicitLoadAt: Date.now(),
         queueVideoIds: queueIds, queueItems,
         channel: item.channel || null, title: item.title || '', author: item.author || '', thumbnail: item.thumbnail || '',
         isShort, isLive, mediaBadgeType: isPlaylist ? 'playlist' : (item.mediaBadgeType || 'video')
@@ -3780,8 +4033,10 @@
       if (isPlaylist && (!mediaObj.queueItems || mediaObj.queueItems.length === 0)) {
         const plData = await fetchPlaylistVideoItemsAndIds(mediaObj.listId || mediaObj.id, 1);
         if (plData.items.length > 0) {
-          mediaObj.firstVideoId = plData.videoIds[0]; mediaObj.currentVideoId = plData.videoIds[0];
-          mediaObj.queueVideoIds = plData.videoIds; mediaObj.queueItems = plData.items;
+          mediaObj.firstVideoId = mediaObj.firstVideoId || plData.videoIds[0];
+          mediaObj.currentVideoId = mediaObj.currentVideoId || plData.videoIds[0];
+          mediaObj.queueVideoIds = plData.videoIds;
+          mediaObj.queueItems = plData.items;
           if (!mediaObj.channelId && plData.items[0].channelId) mediaObj.channelId = plData.items[0].channelId;
           if (!mediaObj.author && plData.items[0].author) mediaObj.author = plData.items[0].author;
         }
@@ -3798,7 +4053,7 @@
         if (state.viewMode !== 'single') {
           state.single.media = mediaObj; state.single.rawUrl = stdUrl; state.single.showChat = !mediaObj.isShort;
           document.getElementById('single-url-input').value = stdUrl;
-          setViewMode('single');
+          setViewMode('single', true);
         } else {
           applySingleMediaImmediately(mediaObj, stdUrl);
         }
@@ -3807,12 +4062,14 @@
         if (slotIdx >= state.multi.slotCount) state.multi.slotCount = Math.min(4, slotIdx + 1);
         const slot = state.multi.slots[slotIdx];
         slot.media = mediaObj; slot.rawUrl = stdUrl; slot.minimized = false; slot.customVideoWidthPx = null; slot.showChat = !mediaObj.isShort;
-        if (state.viewMode !== 'multi') setViewMode('multi'); else buildMultiViewDOM();
+        if (state.viewMode !== 'multi') setViewMode('multi', true); else buildMultiViewDOM();
       }
+      syncCurrentSnapshotState();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       initStorageData();
+      initResultsScrollListener();
       updateModeButtonsUI();
       applyResponsiveLayout();
       pushAppHistoryState('root');
