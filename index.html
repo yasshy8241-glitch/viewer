@@ -279,13 +279,16 @@
             <button id="btn-back-to-parent" onclick="navigateBackInApp()" class="hidden px-2.5 py-0.5 btn-orange rounded font-bold text-[11px] shrink-0 shadow-sm">⬅ 前に戻る</button>
             <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
             <span id="current-section-title" class="font-bold theme-text truncate">YouTube おすすめ ＆ 検索</span>
+            <button id="btn-refresh-library" type="button" onclick="refreshCurrentTabData()" class="hidden px-2.5 py-0.5 rounded badge-orange hover:bg-orange-500 hover:text-white border text-[11px] font-bold shrink-0 shadow-sm">🔄 全件再取得</button>
           </div>
           <div class="flex flex-wrap items-center gap-2 shrink-0">
             <div class="flex items-center gap-1 text-[11px]">
               <span class="theme-text-sub hidden sm:inline">1頁あたり:</span>
               <select id="page-size-select" onchange="changePageSize(this.value)" class="theme-panel border theme-border rounded px-1.5 py-0.5 text-[11px] font-bold theme-text">
                 <option value="24">24件</option>
-                <option value="50" selected>50件</option>
+                <option value="50">50件</option>
+                <option value="100">100件</option>
+                <option value="500" selected>全件表示</option>
               </select>
             </div>
             <div class="flex items-center theme-panel p-0.5 rounded border text-[11px] gap-0.5">
@@ -388,7 +391,7 @@
         activeChannel: null, activePlaylistContext: null,
         pagination: {
           currentPage: 1,
-          pageSize: 50,
+          pageSize: 500,
           nextPageToken: '',
           sourceType: '',
           query: '',
@@ -533,6 +536,26 @@
       const h = Math.floor(totalSec / 3600), m = Math.floor((totalSec % 3600) / 60), s = Math.floor(totalSec % 60);
       const pad = (n) => String(n).padStart(2, '0');
       return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+    }
+
+    function refreshCurrentTabData() {
+      const tab = state.search.tab;
+      if (tab === 'subs') {
+        if (state.search.activeChannel) openChannelDetailView(state.search.activeChannel);
+        else fetchMySubscriptions(true, false, false);
+      } else if (tab === 'playlists') {
+        fetchMyYouTubePlaylists(true, false);
+      } else if (tab === 'liked') {
+        fetchMyLikedVideos(true, false);
+      } else if (tab === 'youtube') {
+        const q = (document.getElementById('search-query-input')?.value || '').trim();
+        if (q) searchYouTubeVideos(q, false);
+        else loadYouTubeRecommendations();
+      } else if (tab === 'twitch') {
+        const q = (document.getElementById('search-query-input')?.value || '').trim();
+        if (q) searchTwitchChannels(q);
+        else loadTwitchRecommendations();
+      }
     }
 
     function resetPagination(sourceType = '', query = '', nextPageToken = '') {
@@ -2618,40 +2641,56 @@
       }
     }
 
-    // 登録チャンネル取得（初回で最大3ページ＝150件まで高速取得＋それ以降も次ページボタンで無制限取得可能）
+    // 登録チャンネル取得（nextPageTokenがある限り最大10ページ＝500件まで全件自動ループ取得）
     async function fetchMySubscriptions(forceRefresh = false, skipHistoryPush = false, appendNextPage = false) {
       state.search.activeChannel = null; state.search.activePlaylistContext = null;
       document.getElementById('channel-detail-toolbar').classList.add('hidden');
       document.getElementById('playlist-detail-toolbar').classList.add('hidden');
 
+      const cachedSubs = state.search.libraryCache.subs || [];
+
       if (!isOAuthTokenValid()) {
-        if (!forceRefresh && state.search.libraryCache.subs.length > 0) {
-          state.search.results = state.search.libraryCache.subs;
+        if (!forceRefresh && cachedSubs.length > 0) {
+          state.search.results = cachedSubs;
           resetPagination('subs', '', '');
-          setSectionBanner(`📺 登録チャンネル一覧 (${state.search.results.length}件)`);
+          const notice = cachedSubs.length <= 50 ? ' ※「🔄 全件再取得」で51件目以降もすべて読み込めます' : '';
+          setSectionBanner(`📺 登録チャンネル一覧 (${cachedSubs.length}件)${notice}`);
           renderCardGrid(state.search.results, 'playlists');
           return;
         }
         if (forceRefresh) handleGoogleAuthClick(true, () => fetchMySubscriptions(true));
-        else showSearchAreaMessage('右上の「🔗 YouTubeアカウント連携」を行うと登録チャンネル一覧が表示されます。', '', false);
+        else showSearchAreaMessage('右上の「🔗 YouTubeアカウント連携」または「🔄 全件再取得」を押すと、登録チャンネル全件が表示されます。', '', false);
+        return;
+      }
+
+      // トークンが有効で、かつ以前の50件制限時のキャッシュしか無い場合は自動的にAPIから全件取得する
+      if (!forceRefresh && !appendNextPage && cachedSubs.length > 50) {
+        state.search.results = cachedSubs;
+        resetPagination('subs', '', '');
+        setSectionBanner(`📺 登録チャンネル一覧 (${cachedSubs.length}件)`);
+        renderCardGrid(state.search.results, 'playlists');
         return;
       }
 
       if (!appendNextPage) {
         resetPagination('subs', '', '');
-        setSectionBanner('📺 登録チャンネルを取得中...');
-        showSearchAreaMessage('登録チャンネルを取得しています...', '', false);
+        setSectionBanner('📺 登録チャンネルを全件取得中...');
+        showSearchAreaMessage('登録チャンネルをすべて取得しています...', '', false);
       }
 
       try {
         let collected = appendNextPage ? [...state.search.results] : [];
+        const seenChannelIds = new Set(collected.map((it) => it.channelId || it.id));
         let pageToken = appendNextPage ? state.search.pagination.nextPageToken : '';
-        const maxInitialLoops = appendNextPage ? 1 : 2; // 初回で最大100件まで自動取得し、1ページ目・2ページ目をすぐ切り替え可能にする
+        const maxLoops = appendNextPage ? 3 : 10; // 最大500件まで一気に全件自動取得
+        let expectedTotal = 0;
 
-        for (let loop = 0; loop < maxInitialLoops; loop++) {
+        for (let loop = 0; loop < maxLoops; loop++) {
           const params = { part: 'snippet', mine: 'true', maxResults: '50' };
           if (pageToken) params.pageToken = pageToken;
           const data = await fetchYouTubeOfficialApi('subscriptions', params, true);
+          if (data.pageInfo?.totalResults) expectedTotal = data.pageInfo.totalResults;
+
           const batch = (data.items || []).map((sub) => {
             const chId = sub.snippet.resourceId?.channelId || '';
             const uploadsId = chId.startsWith('UC') ? ('UU' + chId.substring(2)) : chId;
@@ -2666,7 +2705,17 @@
               viewers: '📺 登録チャンネル'
             };
           });
-          collected.push(...batch);
+
+          batch.forEach((item) => {
+            const key = item.channelId || item.id;
+            if (key && !seenChannelIds.has(key)) {
+              seenChannelIds.add(key);
+              collected.push(item);
+            }
+          });
+
+          setSectionBanner(`📺 登録チャンネルを取得中... (${collected.length}${expectedTotal ? ' / ' + expectedTotal : ''}件)`);
+
           pageToken = data.nextPageToken || '';
           if (!pageToken) break;
         }
@@ -2674,10 +2723,10 @@
         state.search.pagination.nextPageToken = pageToken;
         saveLibraryCache('subs', collected);
         state.search.results = collected;
-        setSectionBanner(`📺 登録チャンネル一覧 (${collected.length}${pageToken ? '+' : ''}件)`);
+        setSectionBanner(`📺 登録チャンネル一覧 (全 ${collected.length}${pageToken ? '+' : ''} 件)`);
         renderCardGrid(collected, 'playlists');
       } catch (e) {
-        if (!appendNextPage) showSearchAreaMessage('登録チャンネルの取得に失敗しました。', '', true);
+        if (!appendNextPage) showSearchAreaMessage('登録チャンネルの取得に失敗しました。右上の「🔄 トークン更新」からお試しください。', '', true);
       }
     }
 
@@ -3337,10 +3386,16 @@
       const resultsArea = document.getElementById('search-results-area');
       const banner = document.getElementById('current-section-banner');
       const pgBar = document.getElementById('pagination-bar');
+      const refreshBtn = document.getElementById('btn-refresh-library');
 
       [ytFilter, searchForm, plToolbar, chToolbar, plDetailBar, settingsPanel].forEach((el) => el.classList.add('hidden'));
       resultsArea.classList.remove('hidden');
       banner.classList.remove('hidden');
+
+      if (refreshBtn) {
+        const showRefresh = ['subs', 'playlists', 'liked'].includes(tab);
+        refreshBtn.classList.toggle('hidden', !showRefresh);
+      }
 
       if (state.search.activePlaylistContext) {
         renderPlaylistDetailActionBar(state.search.activePlaylistContext.listId, state.search.activePlaylistContext.title, state.search.activePlaylistContext.videoIds);
