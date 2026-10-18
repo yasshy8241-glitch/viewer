@@ -1672,7 +1672,7 @@
     function handleSlotVolume(idx, val) { const v = Number(val); state.multi.slots[idx].volume = v; state.multi.slots[idx].muted = v === 0; updateSlotAudioControlsUI(idx); applyPlayerAudioToSlot(idx); }
     function toggleSlotMute(idx) { const s = state.multi.slots[idx]; s.muted = !s.muted; if (!s.muted && s.volume === 0) s.volume = 50; updateSlotAudioControlsUI(idx); applyPlayerAudioToSlot(idx); }
   </script>
-  <!-- ==================== ブロック②：検索・登録CH(LIVE/当日動画)・Twitch詳細取得・カード描画 ==================== -->
+  <!-- ==================== ブロック②：検索・登録CH(LIVE/当日動画)・Twitch詳細取得・カード描画（修正版） ==================== -->
   <script id="script-search">
     const saveSubFoldersToStorage = () => lsSet(STORAGE_KEYS.SUB_FOLDERS, state.search.subFolders);
     const normalizeChannelId = (rawId) => { const s = String(rawId || '').trim(); return s.startsWith('UU') ? 'UC' + s.slice(2) : s; };
@@ -1714,7 +1714,6 @@
       updateActiveChannelDetailFolderButton();
     }
 
-    // ★登録CHのモード切替（CH一覧 / フォルダ / LIVE配信中 / 本日投稿の動画）
     function setSubsViewMode(mode, folderId = undefined, pushHistory = true) {
       if (pushHistory) syncCurrentSnapshotState();
       state.search.subsViewMode = ['channels', 'folders', 'live_streams', 'today_videos'].includes(mode) ? mode : 'channels';
@@ -1781,7 +1780,6 @@
       return list;
     }
 
-    // ★登録チャンネルの最新アップロードから「LIVE配信中」と「当日(24h以内)投稿動画」を一括スキャン
     async function fetchSubsRecentStreams(modeType, forceRefresh = false) {
       const targetChannels = getTargetSubsChannelsByCurrentFolder();
       if (!targetChannels.length) {
@@ -1792,7 +1790,7 @@
       setSectionBanner(isLiveMode ? `🟠 登録CH (${targetChannels.length}CH) のLIVE配信枠をスキャン中...` : `📅 登録CH (${targetChannels.length}CH) の本日投稿動画をスキャン中...`);
       showSearchAreaMessage(isLiveMode ? `登録チャンネル (${targetChannels.length}件) の現在配信中の枠を確認しています...` : `登録チャンネル (${targetChannels.length}件) の当日投稿された動画を取得しています...`, '', false);
 
-      const scanTargets = targetChannels.slice(0, 60); // APIクォータ節約しつつ最大60CH並列スキャン
+      const scanTargets = targetChannels.slice(0, 60);
       const rawVideos = [];
       const chunkSize = 8;
 
@@ -2691,7 +2689,6 @@
       if (pushHistory) pushAppHistoryState(`channel:${ch.channelId}:${ch.tab}`);
     }
 
-    // ★プレイリスト展開時のツールバーにお気に入り登録ボタンを追加
     function renderPlaylistDetailActionBar(listId, listTitle, videoIds) {
       if (!listId || !videoIds?.length) return show('playlist-detail-toolbar', false);
       show('playlist-detail-toolbar', true);
@@ -2811,7 +2808,6 @@
       showSearchAreaMessage('検索結果を取得できませんでした。「⚙️ API・連携設定」でYouTube APIキーを設定すると検索と正確な投稿日時を取得できます。', '', true);
     }
 
-    // ★Twitchの配信タイトル・プレイ中のゲーム名（雑談 / Just Chatting含む）・視聴者数を取得
     const buildTwitchLivePreviewUrl = (login) => `https://static-cdn.jtvnw.net/previews-ttv/live_user_${encodeURIComponent(login.toLowerCase())}-640x360.jpg`;
 
     function translateTwitchGameName(rawName) {
@@ -3117,11 +3113,12 @@
 
         if (isFolder) {
           const isRenaming = state.search.renamingFolderId === item.folderId, isPendingDel = state.search.pendingDeleteFolderId === item.folderId, previews = item.previewChannels || [];
+          const defaultAvatar = 'https://placehold.co/36x36/18181b/10b981?text=CH';
           const strip = previews.length
-            ? `<div class="flex items-center -space-x-2 overflow-hidden py-1">${previews.map((ch) => `<img src="${escapeHtml(ch.thumbnail \vert{}\vert{} 'https://placehold.co/36x36/18181b/10b981?text=CH')}" title="${escapeHtml(ch.title)}" class="w-8 h-8 rounded-full object-cover ring-2 ring-zinc-900 bg-zinc-800" loading="lazy" />`).join('')}${item.channelCount > previews.length ? `<span class="w-8 h-8 rounded-full theme-panel border theme-border flex items-center justify-center text-[10px] font-bold theme-text-sub">+${item.channelCount - previews.length}</span>` : ''}</div>`
+            ? `<div class="flex items-center -space-x-2 overflow-hidden py-1">${previews.map((ch) => `<img src="${escapeHtml(ch.thumbnail ? ch.thumbnail : defaultAvatar)}" title="${escapeHtml(ch.title)}" class="w-8 h-8 rounded-full object-cover ring-2 ring-zinc-900 bg-zinc-800" loading="lazy" />`).join('')}${item.channelCount > previews.length ? `<span class="w-8 h-8 rounded-full theme-panel border theme-border flex items-center justify-center text-[10px] font-bold theme-text-sub">+${item.channelCount - previews.length}</span>` : ''}</div>`
             : `<div class="text-[11px] theme-text-muted py-2">まだチャンネルが登録されていません</div>`;
           card.className = 'group h-full theme-sub border theme-border hover:border-emerald-500/80 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-sm hover:shadow-md transition-all';
-          card.innerHTML = `<div class="space-y-2"><div class="flex items-start justify-between gap-2"><div onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="flex items-center gap-2.5 cursor-pointer min-w-0 flex-1"><div class="w-11 h-11 rounded-xl badge-green border flex items-center justify-center text-xl shrink-0 shadow-sm">${escapeHtml(item.icon || '📁')}</div><div class="min-w-0 flex-1">${isRenaming ? `<form onsubmit="confirmRenameSubFolder('${escapeHtml(item.folderId)}', event)" onclick="event.stopPropagation()" class="flex items-center gap-1"><input id="rename-folder-input-${escapeHtml(item.folderId)}" type="text" value="${escapeHtml(item.title)}" class="theme-input border rounded px-2 py-0.5 text-xs font-bold w-full" /><button type="submit" class="px-2 py-0.5 btn-green rounded text-[11px] font-bold shrink-0">保存</button><button type="button" onclick="cancelRenameSubFolder(event)" class="px-1.5 py-0.5 theme-panel rounded border text-[11px] shrink-0">✕</button></form>` : `<div class="font-extrabold text-sm sm:text-base theme-text group-hover:text-emerald-500 truncate">${escapeHtml(item.title)}</div>`}<div class="text-[11px] theme-text-muted font-medium">${item.channelCount} チャンネル</div></div></div>${!item.isSystemFolder ? `<div class="flex items-center gap-1 shrink-0"><button type="button" onclick="startRenameSubFolder('${escapeHtml(item.folderId)}', event)" class="px-2 py-1 rounded-lg theme-panel hover:opacity-80 border text-[11px] theme-text-sub">✏️</button><button type="button" onclick="requestDeleteSubFolder('${escapeHtml(item.folderId)}', event)" class="px-2 py-1 rounded-lg border text-[11px] font-bold ${isPendingDel ? 'bg-orange-600 text-white border-orange-500' : 'theme-panel theme-text-muted hover:text-orange-500'}">${isPendingDel ? '削除確認' : '🗑️'}</button></div>` : ''}</div><div onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="cursor-pointer pt-1">${strip}</div></div><div class="flex flex-wrap items-center gap-1.5 pt-2 border-t theme-border"><button type="button" onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="flex-1 px-3 py-1.5 rounded-xl btn-green text-xs font-bold shadow-sm">📂 フォルダを開く (${item.channelCount})</button>${!item.isSystemFolder ? `<button type="button" onclick="openBulkAssignModalForFolder('${escapeHtml(item.folderId)}', event)" class="px-3 py-1.5 rounded-xl theme-panel hover:bg-orange-500 hover:text-white border text-xs font-bold">➕ CHを追加・整理</button>` : ''}</div>`;
+          card.innerHTML = `<div class="space-y-2"><div class="flex items-start justify-between gap-2"><div onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="flex items-center gap-2.5 cursor-pointer min-w-0 flex-1"><div class="w-11 h-11 rounded-xl badge-green border flex items-center justify-center text-xl shrink-0 shadow-sm">${escapeHtml(item.icon ? item.icon : '📁')}</div><div class="min-w-0 flex-1">${isRenaming ? `<form onsubmit="confirmRenameSubFolder('${escapeHtml(item.folderId)}', event)" onclick="event.stopPropagation()" class="flex items-center gap-1"><input id="rename-folder-input-${escapeHtml(item.folderId)}" type="text" value="${escapeHtml(item.title)}" class="theme-input border rounded px-2 py-0.5 text-xs font-bold w-full" /><button type="submit" class="px-2 py-0.5 btn-green rounded text-[11px] font-bold shrink-0">保存</button><button type="button" onclick="cancelRenameSubFolder(event)" class="px-1.5 py-0.5 theme-panel rounded border text-[11px] shrink-0">✕</button></form>` : `<div class="font-extrabold text-sm sm:text-base theme-text group-hover:text-emerald-500 truncate">${escapeHtml(item.title)}</div>`}<div class="text-[11px] theme-text-muted font-medium">${item.channelCount} チャンネル</div></div></div>${!item.isSystemFolder ? `<div class="flex items-center gap-1 shrink-0"><button type="button" onclick="startRenameSubFolder('${escapeHtml(item.folderId)}', event)" class="px-2 py-1 rounded-lg theme-panel hover:opacity-80 border text-[11px] theme-text-sub">✏️</button><button type="button" onclick="requestDeleteSubFolder('${escapeHtml(item.folderId)}', event)" class="px-2 py-1 rounded-lg border text-[11px] font-bold ${isPendingDel ? 'bg-orange-600 text-white border-orange-500' : 'theme-panel theme-text-muted hover:text-orange-500'}">${isPendingDel ? '削除確認' : '🗑️'}</button></div>` : ''}</div><div onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="cursor-pointer pt-1">${strip}</div></div><div class="flex flex-wrap items-center gap-1.5 pt-2 border-t theme-border"><button type="button" onclick="selectSubsFolderFilter('${escapeHtml(item.folderId)}')" class="flex-1 px-3 py-1.5 rounded-xl btn-green text-xs font-bold shadow-sm">📂 フォルダを開く (${item.channelCount})</button>${!item.isSystemFolder ? `<button type="button" onclick="openBulkAssignModalForFolder('${escapeHtml(item.folderId)}', event)" class="px-3 py-1.5 rounded-xl theme-panel hover:bg-orange-500 hover:text-white border text-xs font-bold">➕ CHを追加・整理</button>` : ''}</div>`;
           area.appendChild(card); return;
         }
 
