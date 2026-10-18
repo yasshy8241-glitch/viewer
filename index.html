@@ -1,18 +1,4 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><style>.card {
-  padding: 30px;
-  border: 3px solid #13284B;
-  border-radius: 12px;
-  text-align: center;
-}
-h2 { color: #13284B; }
-button {
-  background: #13284B;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}</style></head><body><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
@@ -1686,7 +1672,7 @@ button {
     function handleSlotVolume(idx, val) { const v = Number(val); state.multi.slots[idx].volume = v; state.multi.slots[idx].muted = v === 0; updateSlotAudioControlsUI(idx); applyPlayerAudioToSlot(idx); }
     function toggleSlotMute(idx) { const s = state.multi.slots[idx]; s.muted = !s.muted; if (!s.muted && s.volume === 0) s.volume = 50; updateSlotAudioControlsUI(idx); applyPlayerAudioToSlot(idx); }
   </script>
-<!-- ==================== ブロック②：検索・登録CH(LIVE/当日動画)・Twitch詳細取得・カード描画 ==================== -->
+  <!-- ==================== ブロック②：検索・登録CH(LIVE/当日動画)・Twitch詳細取得・カード描画 ==================== -->
   <script id="script-search">
     const saveSubFoldersToStorage = () => lsSet(STORAGE_KEYS.SUB_FOLDERS, state.search.subFolders);
     const normalizeChannelId = (rawId) => { const s = String(rawId || '').trim(); return s.startsWith('UU') ? 'UC' + s.slice(2) : s; };
@@ -3230,9 +3216,4 @@ button {
     });
   </script>
 </body>
-</html><script>const btn = document.getElementById("mainBtn");
-btn.onclick = function() {
-  alert("JavaScriptが動作しました！");
-  btn.style.background = "#ff4757";
-  btn.innerText = "成功！";
-};</script></body></html>
+</html>
