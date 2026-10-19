@@ -112,52 +112,52 @@
       </div>
     </div>
 
-    <!-- シングルツールバー -->
-    <div id="single-toolbar" class="mt-2 pt-1.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
-      <form onsubmit="handleSingleSubmit(event)" class="flex-1 min-w-[200px] flex items-center gap-1.5">
-        <span id="single-platform-badge" class="hidden px-2 py-0.5 text-[10px] font-bold rounded shrink-0"></span>
-        <input id="single-url-input" type="text" placeholder="YouTube または Twitch のURLを入力して「反映」" class="flex-1 theme-input border rounded-lg px-2.5 py-1 text-xs" />
-        <button type="submit" class="px-3 py-1 btn-mono rounded-lg font-bold shrink-0 shadow-sm">反映</button>
+    <!-- シングルツールバー（URL欄とチャンネル名・操作ボタンが被らないよう余裕を持ったレスポンシブ配置に改善） -->
+    <div id="single-toolbar" class="mt-2 pt-2 border-t theme-border flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 text-xs">
+      <form onsubmit="handleSingleSubmit(event)" class="w-full lg:flex-1 lg:max-w-xl flex items-center gap-1.5 min-w-0">
+        <span id="single-platform-badge" class="hidden px-2 py-1 text-[10px] font-bold rounded-md shrink-0"></span>
+        <input id="single-url-input" type="text" placeholder="YouTube または Twitch のURLを入力して「反映」" class="flex-1 min-w-[140px] theme-input border rounded-lg px-3 py-1.5 text-xs" />
+        <button type="submit" class="px-3.5 py-1.5 btn-mono rounded-lg font-bold shrink-0 shadow-sm">反映</button>
       </form>
-      <div class="flex flex-wrap items-center gap-1">
-        <button id="btn-single-channel" type="button" onclick="openPlayingMediaChannel('single')" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-muted opacity-60 max-w-[160px] truncate">📺 CH詳細</button>
-        <button id="btn-single-like" type="button" onclick="ratePlayingYouTubeVideo('single')" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-emerald-500" title="この動画を高評価 (クリックで高評価/解除)">👍 高評価</button>
-        <button id="btn-single-sub" type="button" onclick="toggleChannelSubscriptionForTarget('single')" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-orange-500" title="チャンネル登録/解除">➕ CH登録</button>
-        <button id="btn-single-savepl" type="button" onclick="openSaveToPlaylistModal('single')" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-emerald-500" title="マイプレイリストへ保存">📂 リスト保存</button>
-        <button id="btn-single-wl" type="button" onclick="toggleWatchLaterForTarget('single')" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-orange-500" title="後で見るに追加/解除">📌 後で見る</button>
-        <button id="btn-single-fav" type="button" onclick="toggleMediaFavorite('single')" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-sub">☆ お気に入り</button>
-        <button id="btn-single-short-mode" type="button" onclick="toggleSingleShortMode()" class="px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-sub">📱 9:16</button>
-        <div id="single-size-controls-wrap" class="flex items-center gap-1 theme-sub px-2 py-0.5 rounded-lg border">
+      <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+        <button id="btn-single-channel" type="button" onclick="openPlayingMediaChannel('single')" class="px-3 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-muted opacity-60 max-w-[200px] truncate shrink-0">📺 CH詳細</button>
+        <button id="btn-single-like" type="button" onclick="ratePlayingYouTubeVideo('single')" class="px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-emerald-500 shrink-0" title="この動画を高評価 (クリックで高評価/解除)">👍 高評価</button>
+        <button id="btn-single-sub" type="button" onclick="toggleChannelSubscriptionForTarget('single')" class="px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-orange-500 shrink-0" title="チャンネル登録/解除">➕ CH登録</button>
+        <button id="btn-single-savepl" type="button" onclick="openSaveToPlaylistModal('single')" class="px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-emerald-500 shrink-0" title="マイプレイリストへ保存">📂 リスト保存</button>
+        <button id="btn-single-wl" type="button" onclick="toggleWatchLaterForTarget('single')" class="px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-sub hover:text-orange-500 shrink-0" title="後で見るに追加/解除">📌 後で見る</button>
+        <button id="btn-single-fav" type="button" onclick="toggleMediaFavorite('single')" class="px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-sub shrink-0">☆ お気に入り</button>
+        <button id="btn-single-short-mode" type="button" onclick="toggleSingleShortMode()" class="px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-sub shrink-0">📱 9:16</button>
+        <div id="single-size-controls-wrap" class="flex items-center gap-1.5 theme-sub px-2.5 py-1 rounded-lg border shrink-0">
           <span class="text-[11px] text-nowrap theme-text-sub">サイズ:</span>
           <input id="single-height-slider" type="range" min="20" max="85" value="42" oninput="handleSingleSizeSlider(this.value)" class="w-16 slider-green cursor-pointer" />
-          <span id="single-size-label" class="text-[10px] w-7 text-right theme-text-muted">42%</span>
-          <button id="btn-single-optimize" type="button" onclick="optimizeSingleVideoSize()" class="px-1.5 py-0.5 rounded badge-orange hover:bg-orange-500 hover:text-white border text-[11px] font-bold shrink-0">📐 最適</button>
+          <span id="single-size-label" class="text-[11px] w-8 text-right theme-text-muted">42%</span>
+          <button id="btn-single-optimize" type="button" onclick="optimizeSingleVideoSize()" class="px-2 py-0.5 rounded badge-orange hover:bg-orange-500 hover:text-white border text-[11px] font-bold shrink-0">📐 最適</button>
         </div>
-        <button id="btn-single-chat-toggle" onclick="toggleSingleChat()" class="px-2 py-1 rounded-lg border text-xs font-bold badge-green">💬 パネルON</button>
+        <button id="btn-single-chat-toggle" onclick="toggleSingleChat()" class="px-3 py-1.5 rounded-lg border text-xs font-bold badge-green shrink-0">💬 パネルON</button>
       </div>
     </div>
 
     <!-- マルチツールバー -->
     <div id="multi-toolbar" class="hidden mt-2 pt-1.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
       <div class="flex flex-wrap items-center gap-1.5">
-        <div class="flex items-center gap-1 pr-1 border-r theme-border">
-          <button onclick="playAllMultiStreams()" class="px-2.5 py-1 rounded-lg btn-green font-bold text-xs shadow-sm flex items-center gap-1">▶ 一斉再生</button>
-          <button onclick="pauseAllActiveMultiStreams()" class="px-2.5 py-1 rounded-lg btn-mono font-bold text-xs shadow-sm flex items-center gap-1">⏸ 一斉停止</button>
+        <div class="flex items-center gap-1.5 pr-2 border-r theme-border">
+          <button onclick="playAllMultiStreams()" class="px-3 py-1 rounded-lg btn-green font-bold text-xs shadow-sm flex items-center gap-1">▶ 一斉再生</button>
+          <button onclick="pauseAllActiveMultiStreams()" class="px-3 py-1 rounded-lg btn-mono font-bold text-xs shadow-sm flex items-center gap-1">⏸ 一斉停止</button>
         </div>
-        <button id="btn-multi-2-layout" onclick="toggleMulti2StackMode()" class="hidden px-2.5 py-1 rounded-lg border badge-orange font-bold text-xs transition-colors">↕ 配置: 横並び(標準)</button>
-        <span class="theme-text-sub font-medium ml-1">🔊 メイン:</span>
-        <div id="multi-audio-buttons" class="flex flex-wrap items-center gap-1"></div>
+        <button id="btn-multi-2-layout" onclick="toggleMulti2StackMode()" class="hidden px-3 py-1 rounded-lg border badge-orange font-bold text-xs transition-colors">↕ 配置: 横並び(標準)</button>
+        <span class="theme-text-sub font-medium ml-1">🔊 メイン音声:</span>
+        <div id="multi-audio-buttons" class="flex flex-wrap items-center gap-1.5"></div>
       </div>
       <div class="flex flex-wrap items-center gap-1.5">
-        <button onclick="optimizeAllMultiSlotsSize()" class="px-2 py-0.5 rounded badge-green hover:bg-emerald-600 hover:text-white border text-[11px] font-bold">📐 全枠サイズ最適化</button>
-        <div class="flex items-center theme-sub px-2 py-0.5 rounded-lg border gap-1">
-          <span class="text-[11px] theme-text-sub">他枠:</span>
-          <button id="btn-subvol-0" onclick="setSubVolumeLevel(0)" class="px-1.5 py-0.5 rounded text-[11px]">0%</button>
-          <button id="btn-subvol-15" onclick="setSubVolumeLevel(15)" class="px-1.5 py-0.5 rounded text-[11px]">15%</button>
-          <button id="btn-subvol-30" onclick="setSubVolumeLevel(30)" class="px-1.5 py-0.5 rounded text-[11px]">30%</button>
+        <button onclick="optimizeAllMultiSlotsSize()" class="px-2.5 py-1 rounded-lg badge-green hover:bg-emerald-600 hover:text-white border text-xs font-bold">📐 全枠サイズ最適化</button>
+        <div class="flex items-center theme-sub px-2.5 py-1 rounded-lg border gap-1">
+          <span class="text-xs theme-text-sub">他枠音量:</span>
+          <button id="btn-subvol-0" onclick="setSubVolumeLevel(0)" class="px-2 py-0.5 rounded text-xs">0%</button>
+          <button id="btn-subvol-15" onclick="setSubVolumeLevel(15)" class="px-2 py-0.5 rounded text-xs">15%</button>
+          <button id="btn-subvol-30" onclick="setSubVolumeLevel(30)" class="px-2 py-0.5 rounded text-xs">30%</button>
         </div>
-        <button onclick="setAllVolumes(50, false)" class="px-2 py-0.5 theme-sub hover:opacity-80 rounded-md border text-[11px] theme-text">均等50%</button>
-        <button onclick="setAllVolumes(0, true)" class="px-2 py-0.5 badge-orange hover:opacity-80 rounded-md border text-[11px] font-medium">🔇 全ミュート</button>
+        <button onclick="setAllVolumes(50, false)" class="px-2.5 py-1 theme-sub hover:opacity-80 rounded-lg border text-xs font-medium theme-text">均等50%</button>
+        <button onclick="setAllVolumes(0, true)" class="px-2.5 py-1 badge-orange hover:opacity-80 rounded-lg border text-xs font-bold">🔇 全ミュート</button>
       </div>
     </div>
   </header>
@@ -181,29 +181,31 @@
         </div>
       </div>
 
-      <!-- シングル下部/右パネル（コメント・関連動画・概要タブ対応） -->
+      <!-- シングル下部/右パネル（コメント・関連動画・概要タブを大きく押しやすく改善） -->
       <div id="single-chat-pane" class="flex-1 w-full min-h-0 overflow-hidden flex flex-col theme-panel">
-        <div class="flex flex-wrap items-center justify-between gap-1.5 px-3 py-1 theme-sub border-b shrink-0">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-            <span id="single-chat-title" class="text-xs font-semibold theme-text truncate max-w-[220px] sm:max-w-xs">パネル</span>
-            <div id="single-info-tabs" class="hidden flex items-center theme-panel p-0.5 rounded-lg border text-[11px] gap-0.5">
-              <button id="single-tab-comments" onclick="setMediaInfoTab('single', 'comments')" class="px-2 py-0.5 rounded font-bold btn-mono">💬 コメント/チャット</button>
-              <button id="single-tab-related" onclick="setMediaInfoTab('single', 'related')" class="px-2 py-0.5 rounded font-medium theme-text-sub">🎬 関連動画</button>
-              <button id="single-tab-desc" onclick="setMediaInfoTab('single', 'desc')" class="px-2 py-0.5 rounded font-medium theme-text-sub">📝 概要・操作</button>
+        <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 theme-sub border-b shrink-0">
+          <div class="flex flex-wrap items-center gap-2.5 min-w-0">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span id="single-chat-title" class="text-xs sm:text-sm font-bold theme-text truncate max-w-[180px] sm:max-w-[240px]">パネル</span>
+            </div>
+            <div id="single-info-tabs" class="hidden flex items-center theme-panel p-1 rounded-xl border gap-1 shadow-sm">
+              <button id="single-tab-comments" onclick="setMediaInfoTab('single', 'comments')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold btn-mono shadow-sm">💬 コメント/チャット</button>
+              <button id="single-tab-related" onclick="setMediaInfoTab('single', 'related')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium theme-text-sub">🎬 関連動画</button>
+              <button id="single-tab-desc" onclick="setMediaInfoTab('single', 'desc')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium theme-text-sub">📝 概要・操作</button>
             </div>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button id="btn-single-switch-chatmode" onclick="switchSingleChatOrComments()" class="hidden px-2 py-0.5 rounded border theme-panel text-[11px] theme-text-sub hover:opacity-80">🔄 コメント欄に切替</button>
-            <a id="single-chat-popout" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-1.5 py-0.5 theme-text-sub hover:text-emerald-500 rounded text-xs">↗ ポップアウト</a>
-            <button onclick="toggleSingleChat()" class="p-1 theme-text-sub hover:text-orange-500 rounded text-xs">✕</button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="btn-single-switch-chatmode" onclick="switchSingleChatOrComments()" class="hidden px-3 py-1 rounded-lg border theme-panel text-xs font-bold theme-text-sub hover:opacity-80">🔄 コメント欄に切替</button>
+            <a id="single-chat-popout" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-2.5 py-1 theme-panel border theme-text-sub hover:text-emerald-500 rounded-lg text-xs font-bold">↗ ポップアウト</a>
+            <button onclick="toggleSingleChat()" class="px-2 py-1 theme-panel border theme-text-sub hover:text-orange-500 rounded-lg text-xs font-bold" title="パネルを閉じる">✕</button>
           </div>
         </div>
         <div id="single-chat-container" class="flex-1 flex flex-col relative overflow-hidden items-center justify-center text-xs theme-text-muted">動画・配信を選択するとチャット・コメント・関連動画・概要が表示されます</div>
       </div>
     </div>
 
-    <div id="multi-view" class="hidden w-full h-full flex flex-col gap-1 p-1 overflow-hidden"></div>
+    <div id="multi-view" class="hidden w-full h-full flex flex-col gap-1.5 p-1.5 overflow-hidden"></div>
   </main>
 
   <!-- 統合モーダル -->
@@ -225,7 +227,7 @@
 
       <div class="px-3 py-1.5 border-b theme-border space-y-1.5 shrink-0">
         <div class="flex flex-wrap items-center justify-between gap-1.5">
-          <!-- ナビゲーションタブ（「📌 後で見る」を独立タブ化） -->
+          <!-- ナビゲーションタブ -->
           <div class="flex flex-wrap items-center theme-sub p-0.5 rounded-lg border text-xs gap-0.5">
             <button id="tab-search-yt" onclick="setSearchTab('youtube')" class="px-2.5 py-1 rounded-md font-bold btn-mono shadow-sm">▶ YouTube</button>
             <button id="tab-search-tw" onclick="setSearchTab('twitch')" class="px-2.5 py-1 rounded-md font-medium theme-text-sub">📺 Twitch</button>
@@ -245,7 +247,7 @@
           </div>
         </div>
 
-        <!-- 検索バー（重複していた更新ボタンを排除し、ピン留めボタンを追加） -->
+        <!-- 検索バー -->
         <form id="search-form-bar" onsubmit="executeSearch(event)" class="flex items-center gap-1.5">
           <input id="search-query-input" type="text" oninput="handleSearchQueryInputChanged(this.value)" placeholder="未入力で「総合おすすめ(履歴関連・登録CH新着・傾向CH)」 / キーワード・URLを入力して検索..." class="flex-1 theme-input border rounded-lg px-3 py-1.5 text-xs" />
           <button id="btn-pin-current-query" type="button" onclick="pinCurrentSearchQuery()" class="hidden px-2.5 py-1.5 badge-orange hover:bg-orange-500 hover:text-white rounded-lg border text-xs font-bold shrink-0 transition-colors" title="入力中のキーワードを興味タグにピン留め">📌 タグ固定</button>
@@ -253,7 +255,7 @@
           <button type="submit" class="px-4 py-1.5 btn-green rounded-lg text-xs font-bold shrink-0 shadow-sm">検索する</button>
         </form>
 
-        <!-- ★興味のあるキーワード・タグのピン留めバー -->
+        <!-- 興味のあるキーワード・タグのピン留めバー -->
         <div id="interest-tags-bar" class="flex items-center justify-between gap-2 px-2 py-1 rounded-lg theme-sub border theme-border text-xs">
           <div id="interest-tags-list" class="flex items-center gap-1 overflow-x-auto pb-0.5 pt-0.5 flex-1 min-w-0"></div>
           <form onsubmit="handleAddInterestTagSubmit(event)" class="flex items-center gap-1 shrink-0">
@@ -271,25 +273,25 @@
           </form>
         </div>
 
-        <!-- 登録チャンネル専用ツールバー -->
-        <div id="subs-folder-toolbar" class="hidden p-2 rounded-xl theme-sub border theme-border space-y-2 text-xs">
+        <!-- 登録チャンネル専用ツールバー（サブタブを廃止し、「CH一覧」と「フォルダ」のメインタブでシンプルに完結） -->
+        <div id="subs-folder-toolbar" class="hidden p-2 rounded-xl theme-sub border theme-border text-xs">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex flex-wrap items-center gap-1.5">
               <div class="flex flex-wrap items-center theme-panel p-0.5 rounded-lg border theme-border gap-0.5">
-                <button id="btn-subs-view-channels" type="button" onclick="setSubsViewMode('channels')" class="px-2.5 py-1 rounded-md font-bold btn-mono shadow-sm">📺 CH一覧</button>
-                <button id="btn-subs-view-folders" type="button" onclick="setSubsViewMode('folders')" class="px-2.5 py-1 rounded-md font-medium theme-text-sub">📁 フォルダ</button>
-                <button id="btn-subs-view-live" type="button" onclick="setSubsViewMode('live_streams')" class="px-2.5 py-1 rounded-md font-medium theme-text-sub">🟠 LIVE中</button>
-                <button id="btn-subs-view-upcoming" type="button" onclick="setSubsViewMode('upcoming_streams')" class="px-2.5 py-1 rounded-md font-medium theme-text-sub">🗓️ LIVE予定</button>
-                <button id="btn-subs-view-today" type="button" onclick="setSubsViewMode('today_videos')" class="px-2.5 py-1 rounded-md font-medium theme-text-sub">📅 本日投稿</button>
+                <button id="btn-subs-view-channels" type="button" onclick="setSubsViewMode('channels', null)" class="px-3 py-1 rounded-md font-bold btn-mono shadow-sm">📺 CH一覧</button>
+                <button id="btn-subs-view-folders" type="button" onclick="setSubsViewMode('folders', null)" class="px-3 py-1 rounded-md font-medium theme-text-sub">📁 フォルダ</button>
+                <button id="btn-subs-view-live" type="button" onclick="setSubsViewMode('live_streams', null)" class="px-3 py-1 rounded-md font-medium theme-text-sub">🟠 LIVE中</button>
+                <button id="btn-subs-view-upcoming" type="button" onclick="setSubsViewMode('upcoming_streams', null)" class="px-3 py-1 rounded-md font-medium theme-text-sub">🗓️ LIVE予定</button>
+                <button id="btn-subs-view-today" type="button" onclick="setSubsViewMode('today_videos', null)" class="px-3 py-1 rounded-md font-medium theme-text-sub">📅 本日投稿</button>
               </div>
               <input id="subs-filter-input" type="text" oninput="handleSubsFilterInput(this.value)" placeholder="🔍 登録CH名を絞り込み..." class="theme-input border rounded-lg px-2.5 py-1 text-xs w-36 sm:w-44" />
+              <div id="subs-active-folder-actions" class="hidden flex items-center gap-1"></div>
             </div>
             <form onsubmit="handleCreateSubFolder(event)" class="flex items-center gap-1.5 flex-1 min-w-[200px] max-w-xs justify-end">
               <input id="new-folder-name-input" type="text" placeholder="新規フォルダ名..." class="flex-1 theme-input border rounded-lg px-2.5 py-1 text-xs" />
-              <button type="submit" class="px-2.5 py-1 btn-green rounded-lg font-bold shrink-0 shadow-sm">➕ 作成</button>
+              <button type="submit" class="px-2.5 py-1 btn-green rounded-lg font-bold shrink-0 shadow-sm">➕ フォルダ作成</button>
             </form>
           </div>
-          <div id="subs-folder-pills-bar" class="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-0.5"></div>
         </div>
 
         <div id="channel-detail-toolbar" class="hidden p-2 rounded-xl theme-sub border theme-border space-y-2 text-xs">
@@ -325,7 +327,7 @@
           <div class="flex flex-wrap items-center gap-1.5 shrink-0" id="playlist-detail-actions"></div>
         </div>
 
-        <!-- セクションバナー（更新ボタンをここ1箇所に統一） -->
+        <!-- セクションバナー -->
         <div id="current-section-banner" class="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1 rounded-lg theme-sub border theme-border text-xs">
           <div class="flex items-center gap-2 min-w-0">
             <button id="btn-back-to-parent" onclick="navigateBackInApp()" class="hidden px-2.5 py-0.5 btn-orange rounded font-bold text-[11px] shrink-0 shadow-sm">⬅ 前に戻る</button>
@@ -788,6 +790,7 @@
       }
     }
 
+    // ★シングル＆マルチの高評価ボタン更新（マルチモードでも押しやすいサイズを維持）
     function updateActionButtonsUI(target) {
       const m = target === 'single' ? state.single.media : state.multi.slots[target]?.media;
       if (target === 'single') {
@@ -796,7 +799,7 @@
         const vid = m.currentVideoId || m.firstVideoId || m.id;
         const isWl = isMediaInWatchLater(m);
         if (wlBtn) {
-          wlBtn.className = `px-2 py-1 rounded-lg border text-xs font-bold transition-colors ${isWl ? 'badge-orange' : 'theme-sub theme-text-sub hover:text-orange-500'}`;
+          wlBtn.className = `px-2.5 py-1.5 rounded-lg border text-xs font-bold shrink-0 transition-colors ${isWl ? 'badge-orange' : 'theme-sub theme-text-sub hover:text-orange-500'}`;
           wlBtn.textContent = isWl ? '📌 後で見る済' : '📌 後で見る';
         }
         if (m.platform !== 'youtube') return;
@@ -805,11 +808,11 @@
         const countStr = likeCount > 0 ? ` ${likeCount.toLocaleString()}` : '';
         const isSub = m.channelId && state.search.libraryCache.subs.some((s) => normalizeChannelId(s.channelId || s.id) === normalizeChannelId(m.channelId));
         if (likeBtn) {
-          likeBtn.className = `px-2 py-1 rounded-lg border text-xs font-bold transition-colors ${isLiked ? 'badge-green border-emerald-500' : 'theme-sub theme-text-sub hover:text-emerald-500'}`;
+          likeBtn.className = `px-2.5 py-1.5 rounded-lg border text-xs font-bold shrink-0 transition-colors ${isLiked ? 'badge-green border-emerald-500' : 'theme-sub theme-text-sub hover:text-emerald-500'}`;
           likeBtn.textContent = `${isLiked ? '👍 高評価済' : '👍 高評価'}${countStr}`;
         }
         if (subBtn) {
-          subBtn.className = `px-2 py-1 rounded-lg border text-xs font-bold transition-colors ${isSub ? 'badge-orange' : 'theme-sub theme-text-sub hover:text-orange-500'}`;
+          subBtn.className = `px-2.5 py-1.5 rounded-lg border text-xs font-bold shrink-0 transition-colors ${isSub ? 'badge-orange' : 'theme-sub theme-text-sub hover:text-orange-500'}`;
           subBtn.textContent = isSub ? '✓ CH登録済' : '➕ CH登録';
         }
       } else {
@@ -819,8 +822,8 @@
         const vid = slot.media.currentVideoId || slot.media.firstVideoId || slot.media.id;
         const isLiked = state.search.libraryCache.liked.some((x) => x.id === vid);
         const likeCount = getVideoLikeCount(vid, slot.media);
-        likeBtn.className = `px-1.5 py-0.5 rounded border text-[10px] font-bold transition-colors ${isLiked ? 'badge-green border-emerald-500' : 'theme-panel theme-text-sub hover:text-emerald-500'}`;
-        likeBtn.textContent = `👍${likeCount > 0 ? ' ' + likeCount.toLocaleString() : ''}`;
+        likeBtn.className = `px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors ${isLiked ? 'badge-green border-emerald-500' : 'theme-panel theme-text-sub hover:text-emerald-500'}`;
+        likeBtn.textContent = `👍 高評価${likeCount > 0 ? ' ' + likeCount.toLocaleString() : ''}`;
       }
     }
 
@@ -867,7 +870,7 @@
       if (!btn) return;
       show(btn, state.viewMode === 'multi' && state.multi.slotCount === 2);
       const isStack = state.multi.twoScreenVerticalStack;
-      btn.className = `px-2.5 py-1 rounded-lg border font-bold text-xs transition-colors ${isStack ? 'btn-orange shadow-sm' : 'badge-orange'}`;
+      btn.className = `px-3 py-1 rounded-lg border font-bold text-xs transition-colors ${isStack ? 'btn-orange shadow-sm' : 'badge-orange'}`;
       btn.textContent = isStack ? '↕ 配置: 縦4段(動画1/コメ1/動画2/コメ2)' : '↔ 配置: 横並び(標準)';
     }
 
@@ -883,14 +886,18 @@
       }
     }
 
+    // ★シングル・マルチ両方の「コメント/チャット」「関連動画」「概要・操作」タブを大きく押しやすいサイズで更新
     function updateMediaInfoTabButtonsUI(target) {
       const active = target === 'single' ? (state.single.infoTab || 'comments') : (state.multi.slots[target]?.infoTab || 'comments');
       const prefix = target === 'single' ? 'single-tab-' : `slot-${target}-tab-`;
-      [['comments', '💬 コメ/チャット'], ['related', '🎬 関連動画'], ['desc', '📝 概要・操作']].forEach(([k, lbl]) => {
+      const sizeCls = target === 'single'
+        ? 'px-3.5 py-1.5 rounded-lg text-xs sm:text-sm'
+        : 'px-3 py-1 rounded-md text-xs';
+      [['comments', '💬 コメント/チャット'], ['related', '🎬 関連動画'], ['desc', '📝 概要・操作']].forEach(([k, lbl]) => {
         const el = $(prefix + k);
         if (el) {
-          el.className = `px-2 py-0.5 rounded transition-colors ${k === active ? 'font-bold btn-mono shadow-sm' : 'font-medium theme-text-sub hover:opacity-80'}`;
-          if (target !== 'single') el.textContent = lbl;
+          el.className = `${sizeCls} transition-colors ${k === active ? 'font-bold btn-mono shadow-sm' : 'font-medium theme-text-sub hover:opacity-80'}`;
+          el.textContent = lbl;
         }
       });
     }
@@ -1054,8 +1061,8 @@
               ${pubText ? `<span>· 📅 ${escapeHtml(pubText)}</span>` : ''}
             </div>
             <div class="flex items-center gap-1 pt-0.5">
-              <button onclick="playRelatedItem(${targetArg}, ${idx})" class="px-2 py-0.5 rounded btn-green text-[10px] font-bold">▶ この枠で再生</button>
-              <button onclick="navigateToChannelDetailInApp('${escapeHtml(orStr(it.channelId, ''))}', '${escapeHtml(orStr(it.author, ''))}', '', '${escapeHtml(it.id)}')" class="px-2 py-0.5 rounded theme-panel border text-[10px] theme-text-sub hover:text-emerald-500">📺 CH詳細</button>
+              <button onclick="playRelatedItem(${targetArg}, ${idx})" class="px-2.5 py-1 rounded-md btn-green text-[11px] font-bold">▶ この枠で再生</button>
+              <button onclick="navigateToChannelDetailInApp('${escapeHtml(orStr(it.channelId, ''))}', '${escapeHtml(orStr(it.author, ''))}', '', '${escapeHtml(it.id)}')" class="px-2.5 py-1 rounded-md theme-panel border text-[11px] font-medium theme-text-sub hover:text-emerald-500">📺 CH詳細</button>
             </div>
           </div>
         </div>
@@ -1287,7 +1294,7 @@
       const isShort = Boolean(state.single.media?.isShort), portrait = isPortraitEffective();
       const singleView = $('single-view'), videoPane = $('single-video-pane'), slider = $('single-height-slider'), sizeLabel = $('single-size-label'), shortBtn = $('btn-single-short-mode');
       if (shortBtn) {
-        shortBtn.className = `px-2 py-1 rounded-lg border text-xs font-bold transition-colors ${isShort ? 'badge-orange' : 'theme-sub theme-text-sub hover:opacity-80'}`;
+        shortBtn.className = `px-2.5 py-1.5 rounded-lg border text-xs font-bold shrink-0 transition-colors ${isShort ? 'badge-orange' : 'theme-sub theme-text-sub hover:opacity-80'}`;
         shortBtn.textContent = isShort ? '📱 9:16中' : '📱 9:16';
       }
       updateSingleChatButtonUI();
@@ -1399,7 +1406,7 @@
 
     function updateSingleChatButtonUI() {
       const btn = $('btn-single-chat-toggle'); if (!btn) return;
-      btn.className = `px-2 py-1 rounded-lg border text-xs transition-colors ${state.single.showChat ? 'badge-green font-bold' : 'theme-sub theme-text-sub font-medium'}`;
+      btn.className = `px-3 py-1.5 rounded-lg border text-xs shrink-0 transition-colors ${state.single.showChat ? 'badge-green font-bold' : 'theme-sub theme-text-sub font-medium'}`;
       btn.textContent = state.single.showChat ? '💬 パネルON' : '💬 パネルOFF';
     }
 
@@ -1425,10 +1432,10 @@
       if (!media) return show(badge, false);
       show(badge, true);
       if (media.platform === 'youtube') {
-        badge.className = `px-2 py-0.5 text-[10px] font-bold rounded shrink-0 ${media.type === 'playlist' ? 'badge-green border' : (media.isShort ? 'badge-orange border' : (media.isLive ? 'btn-orange' : 'btn-mono'))}`;
+        badge.className = `px-2 py-1 text-[10px] font-bold rounded-md shrink-0 ${media.type === 'playlist' ? 'badge-green border' : (media.isShort ? 'badge-orange border' : (media.isLive ? 'btn-orange' : 'btn-mono'))}`;
         badge.textContent = media.type === 'playlist' ? '📂 PLAYLIST' : (media.isShort ? '📱 SHORTS' : (media.isLive ? '🟠 LIVE' : '🎬 動画'));
       } else {
-        badge.className = 'px-2 py-0.5 text-[10px] font-bold rounded shrink-0 badge-orange border';
+        badge.className = 'px-2 py-1 text-[10px] font-bold rounded-md shrink-0 badge-orange border';
         badge.textContent = media.gameName ? `TW · ${media.gameName}` : 'Twitch';
       }
       container.innerHTML = ''; state.single.twitchPlayer = null;
@@ -1450,7 +1457,7 @@
     async function renderYouTubeCommentsPanel(targetContainer, videoId, target = 'single') {
       if (!targetContainer || !videoId) return;
       const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
-      targetContainer.innerHTML = `<div class="w-full h-full flex flex-col overflow-hidden"><div id="comments-list-${escapeHtml(String(target))}-${escapeHtml(videoId)}" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs"><div class="text-center py-6 theme-text-muted">コメントを読み込んでいます... (${escapeHtml(videoId)})</div></div><div class="px-3 py-1.5 border-t theme-border theme-sub flex flex-wrap items-center justify-between gap-1.5 text-[11px] shrink-0"><span class="theme-text-muted truncate">💬 動画コメント (${escapeHtml(videoId)}) · ⏱時間クリックでジャンプ</span><div class="flex items-center gap-1.5"><button onclick="openPopupWindow('${watchUrl}')" class="px-2 py-0.5 rounded btn-mono font-medium">↗ 小窓</button><a href="${watchUrl}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded badge-green border font-bold">↗ YouTube</a></div></div></div>`;
+      targetContainer.innerHTML = `<div class="w-full h-full flex flex-col overflow-hidden"><div id="comments-list-${escapeHtml(String(target))}-${escapeHtml(videoId)}" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs"><div class="text-center py-6 theme-text-muted">コメントを読み込んでいます... (${escapeHtml(videoId)})</div></div><div class="px-3 py-1.5 border-t theme-border theme-sub flex flex-wrap items-center justify-between gap-1.5 text-[11px] shrink-0"><span class="theme-text-muted truncate">💬 動画コメント (${escapeHtml(videoId)}) · ⏱時間クリックでジャンプ</span><div class="flex items-center gap-1.5"><button onclick="openPopupWindow('${watchUrl}')" class="px-2.5 py-0.5 rounded btn-mono font-medium">↗ 小窓</button><a href="${watchUrl}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-0.5 rounded badge-green border font-bold">↗ YouTube</a></div></div></div>`;
       const listEl = targetContainer.querySelector(`#comments-list-${CSS.escape(String(target))}-${CSS.escape(videoId)}`);
       if (!listEl) return;
       if ((state.search.ytApiKey || localStorage.getItem(STORAGE_KEYS.YT_API) || '').trim() || isOAuthTokenValid()) {
@@ -1485,7 +1492,7 @@
       }
       const qItems = media.queueItems || [], activeVid = media.currentVideoId || media.firstVideoId || (media.type === 'video' ? media.id : (media.queueVideoIds?.[0] || ''));
       const curIdx = Math.max(0, qItems.findIndex((it) => it.id === activeVid)), curItem = qItems[curIdx] || null, targetArg = target === 'single' ? `'single'` : Number(target);
-      targetContainer.innerHTML = `<div class="w-full h-full flex flex-col overflow-hidden theme-panel"><div class="px-3 py-1.5 theme-sub border-b theme-border flex flex-wrap items-center justify-between gap-2 shrink-0"><div class="flex items-center gap-1.5 min-w-0 flex-1"><span id="pl-pos-badge-${escapeHtml(String(target))}" class="px-2 py-0.5 rounded badge-green border text-[11px] font-extrabold shrink-0">${qItems.length ? `${curIdx + 1} /${qItems.length}` : 'PLAYLIST'}</span><span id="pl-now-title-${escapeHtml(String(target))}" class="text-xs font-bold theme-text truncate">${escapeHtml(orStr(curItem?.title, orStr(media.title, 'プレイリスト連続再生中')))}</span></div><div class="flex flex-wrap items-center gap-1 shrink-0"><button onclick="stepPlaylistVideo(${targetArg}, -1)" class="px-2 py-0.5 rounded-lg theme-panel hover:bg-emerald-500 hover:text-white border text-xs font-bold">⏮</button><button onclick="stepPlaylistVideo(${targetArg}, 1)" class="px-2 py-0.5 rounded-lg theme-panel hover:bg-emerald-500 hover:text-white border text-xs font-bold">⏭</button><div class="flex items-center theme-panel p-0.5 rounded-lg border text-[11px] ml-1"><button id="pl-tab-btn-queue-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'queue')" class="px-2 py-0.5 rounded font-bold ${activeTab === 'queue' ? 'btn-green shadow-sm' : 'theme-text-sub'}">📂 リスト(${qItems.length})</button><button id="pl-tab-btn-comments-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'comments')" class="px-2 py-0.5 rounded font-bold ${activeTab === 'comments' ? 'btn-orange shadow-sm' : 'theme-text-sub'}">💬 コメ</button><button id="pl-tab-btn-related-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'related')" class="px-2 py-0.5 rounded font-bold ${activeTab === 'related' ? 'btn-mono shadow-sm' : 'theme-text-sub'}">🎬 関連</button><button id="pl-tab-btn-desc-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'desc')" class="px-2 py-0.5 rounded font-bold ${activeTab === 'desc' ? 'btn-mono shadow-sm' : 'theme-text-sub'}">📝 概要</button></div></div></div><div id="pl-queue-body-${escapeHtml(String(target))}" class="${activeTab === 'queue' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"><div id="pl-queue-list-${escapeHtml(String(target))}" class="flex-1 overflow-y-auto p-2.5 space-y-1.5 text-xs"></div></div><div id="pl-comments-body-${escapeHtml(String(target))}" class="${activeTab === 'comments' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"></div><div id="pl-related-body-${escapeHtml(String(target))}" class="${activeTab === 'related' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"></div><div id="pl-desc-body-${escapeHtml(String(target))}" class="${activeTab === 'desc' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"></div></div>`;
+      targetContainer.innerHTML = `<div class="w-full h-full flex flex-col overflow-hidden theme-panel"><div class="px-3 py-1.5 theme-sub border-b theme-border flex flex-wrap items-center justify-between gap-2 shrink-0"><div class="flex items-center gap-1.5 min-w-0 flex-1"><span id="pl-pos-badge-${escapeHtml(String(target))}" class="px-2 py-0.5 rounded badge-green border text-[11px] font-extrabold shrink-0">${qItems.length ? `${curIdx + 1} /${qItems.length}` : 'PLAYLIST'}</span><span id="pl-now-title-${escapeHtml(String(target))}" class="text-xs font-bold theme-text truncate">${escapeHtml(orStr(curItem?.title, orStr(media.title, 'プレイリスト連続再生中')))}</span></div><div class="flex flex-wrap items-center gap-1.5 shrink-0"><button onclick="stepPlaylistVideo(${targetArg}, -1)" class="px-2.5 py-1 rounded-lg theme-panel hover:bg-emerald-500 hover:text-white border text-xs font-bold">⏮ 前へ</button><button onclick="stepPlaylistVideo(${targetArg}, 1)" class="px-2.5 py-1 rounded-lg theme-panel hover:bg-emerald-500 hover:text-white border text-xs font-bold">次へ ⏭</button><div class="flex items-center theme-panel p-1 rounded-xl border text-xs gap-1 ml-1"><button id="pl-tab-btn-queue-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'queue')" class="px-3 py-1 rounded-lg font-bold ${activeTab === 'queue' ? 'btn-green shadow-sm' : 'theme-text-sub'}">📂 リスト(${qItems.length})</button><button id="pl-tab-btn-comments-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'comments')" class="px-3 py-1 rounded-lg font-bold ${activeTab === 'comments' ? 'btn-orange shadow-sm' : 'theme-text-sub'}">💬 コメント</button><button id="pl-tab-btn-related-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'related')" class="px-3 py-1 rounded-lg font-bold ${activeTab === 'related' ? 'btn-mono shadow-sm' : 'theme-text-sub'}">🎬 関連動画</button><button id="pl-tab-btn-desc-${escapeHtml(String(target))}" onclick="setPlaylistPanelTab(${targetArg}, 'desc')" class="px-3 py-1 rounded-lg font-bold ${activeTab === 'desc' ? 'btn-mono shadow-sm' : 'theme-text-sub'}">📝 概要</button></div></div></div><div id="pl-queue-body-${escapeHtml(String(target))}" class="${activeTab === 'queue' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"><div id="pl-queue-list-${escapeHtml(String(target))}" class="flex-1 overflow-y-auto p-2.5 space-y-1.5 text-xs"></div></div><div id="pl-comments-body-${escapeHtml(String(target))}" class="${activeTab === 'comments' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"></div><div id="pl-related-body-${escapeHtml(String(target))}" class="${activeTab === 'related' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"></div><div id="pl-desc-body-${escapeHtml(String(target))}" class="${activeTab === 'desc' ? 'flex-1' : 'hidden'} min-h-0 flex flex-col overflow-hidden"></div></div>`;
       if (activeTab === 'comments' && $(`pl-comments-body-${target}`) && activeVid) renderYouTubeCommentsPanel($(`pl-comments-body-${target}`), activeVid, target);
       if (activeTab === 'related' && $(`pl-related-body-${target}`)) renderRelatedVideosPanel($(`pl-related-body-${target}`), media, target);
       if (activeTab === 'desc' && $(`pl-desc-body-${target}`)) renderMediaDescriptionPanel($(`pl-desc-body-${target}`), media, target);
@@ -1545,11 +1552,11 @@
 
       const infoTab = state.single.infoTab || 'comments';
       if (infoTab === 'related') {
-        chatTitle.textContent = `🎬 関連動画 (${orStr(m.title, m.id)})`; show(switchBtn, false);
+        chatTitle.textContent = `🎬 関連動画`; show(switchBtn, false);
         return renderRelatedVideosPanel(chatContainer, m, 'single');
       }
       if (infoTab === 'desc') {
-        chatTitle.textContent = `📝 概要・操作 (${orStr(m.title, m.id)})`; show(switchBtn, false);
+        chatTitle.textContent = `📝 概要・操作`; show(switchBtn, false);
         return renderMediaDescriptionPanel(chatContainer, m, 'single');
       }
 
@@ -1580,27 +1587,28 @@
       for (let i = 0; i < state.multi.slotCount; i++) {
         const isMain = state.multi.activeAudioIndex === i, btn = document.createElement('button');
         btn.onclick = () => focusMainAudio(i);
-        btn.className = `px-2 py-0.5 rounded-md border font-medium transition-all flex items-center gap-1 ${isMain ? 'btn-orange border-orange-500 shadow-sm font-bold' : 'theme-sub theme-text-sub hover:opacity-80'}`;
+        btn.className = `px-2.5 py-1 rounded-lg border text-xs font-bold transition-all flex items-center gap-1 ${isMain ? 'btn-orange border-orange-500 shadow-sm' : 'theme-sub theme-text-sub hover:opacity-80'}`;
         btn.innerHTML = `${isMain ? '👑' : '🔈'} SLOT ${i + 1}`;
         wrap.appendChild(btn);
       }
-      [0, 15, 30].forEach((lvl) => { if ($(`btn-subvol-${lvl}`)) $(`btn-subvol-${lvl}`).className = `px-1.5 py-0.5 rounded text-[11px] ${state.multi.subVolumeLevel === lvl ? 'btn-mono font-bold' : 'theme-text-sub'}`; });
+      [0, 15, 30].forEach((lvl) => { if ($(`btn-subvol-${lvl}`)) $(`btn-subvol-${lvl}`).className = `px-2 py-0.5 rounded text-xs ${state.multi.subVolumeLevel === lvl ? 'btn-mono font-bold' : 'theme-text-sub'}`; });
       updateMulti2LayoutButtonUI();
     }
 
+    // ★マルチモードの各枠ボタン＆タブを大きく分かりやすく改善
     function buildMultiViewDOM() {
       const container = $('multi-view'); container.innerHTML = '';
       const is2VerticalStack = state.multi.slotCount === 2 && state.multi.twoScreenVerticalStack;
 
       for (let i = 0; i < state.multi.slotCount; i++) {
         const slot = state.multi.slots[i], isMain = state.multi.activeAudioIndex === i, isShort = Boolean(slot.media?.isShort), isFav = isMediaFavorited(slot.media), hasMedia = Boolean(slot.media);
-        const shortAuthor = (slot.media?.author && slot.media.author !== 'YouTube') ? slot.media.author.slice(0, 8) : 'CH詳細';
+        const shortAuthor = (slot.media?.author && slot.media.author !== 'YouTube') ? slot.media.author.slice(0, 10) : 'CH詳細';
         const vid = slot.media?.currentVideoId || slot.media?.firstVideoId || slot.media?.id || '';
         const isLiked = vid && state.search.libraryCache.liked.some((x) => x.id === vid);
         const likeCount = getVideoLikeCount(vid, slot.media);
         const row = document.createElement('div');
         row.id = `multi-slot-row-${i}`;
-        row.className = `${slot.minimized ? 'h-9 shrink-0 ' : 'flex-1 min-h-0 '}theme-panel border rounded-lg flex flex-col overflow-hidden transition-all ${isMain ? 'border-orange-500 ring-1 ring-orange-500/30' : 'theme-border'}`;
+        row.className = `${slot.minimized ? 'h-11 shrink-0 ' : 'flex-1 min-h-0 '}theme-panel border rounded-xl flex flex-col overflow-hidden transition-all ${isMain ? 'border-orange-500 ring-1 ring-orange-500/30' : 'theme-border'}`;
 
         const bodyFlexClass = is2VerticalStack ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'flex-1 min-h-0 flex flex-row overflow-hidden';
         const customWidthStyle = (!is2VerticalStack && slot.showChat && slot.customVideoWidthPx) ? `style="width: ${slot.customVideoWidthPx}px;"` : '';
@@ -1614,30 +1622,30 @@
         const activeInfoTab = slot.infoTab || 'comments';
 
         row.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-1 px-2 py-0.5 theme-sub border-b theme-border text-xs shrink-0">
-            <form onsubmit="handleSlotSubmit(event, ${i})" class="flex-1 min-w-[160px] flex items-center gap-1">
-              <span class="font-bold text-[10px] px-1.5 py-0.5 rounded theme-panel border theme-border theme-text shrink-0">S${i + 1}</span>
-              <span id="slot-badge-${i}" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0"></span>
-              <input id="slot-url-input-${i}" type="text" value="${escapeHtml(slot.rawUrl)}" placeholder="URLを入力" class="flex-1 theme-input border rounded px-2 py-0.5 text-xs" />
-              <button type="submit" class="px-2 py-0.5 btn-mono rounded font-bold text-[11px] shrink-0">反映</button>
-              <button type="button" onclick="openSearchModal(${i})" class="px-2 py-0.5 btn-green rounded text-[11px] font-bold shrink-0">🔍</button>
+          <div class="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 theme-sub border-b theme-border text-xs shrink-0">
+            <form onsubmit="handleSlotSubmit(event, ${i})" class="flex-1 min-w-[200px] flex items-center gap-1.5">
+              <span class="font-extrabold text-xs px-2 py-1 rounded-lg theme-panel border theme-border theme-text shrink-0">SLOT ${i + 1}</span>
+              <span id="slot-badge-${i}" class="hidden px-2 py-1 text-[10px] font-bold rounded-md shrink-0"></span>
+              <input id="slot-url-input-${i}" type="text" value="${escapeHtml(slot.rawUrl)}" placeholder="YouTube / Twitch URLを入力" class="flex-1 min-w-[110px] theme-input border rounded-lg px-2.5 py-1 text-xs" />
+              <button type="submit" class="px-2.5 py-1 btn-mono rounded-lg font-bold text-xs shrink-0 shadow-sm">反映</button>
+              <button type="button" onclick="openSearchModal(${i})" class="px-3 py-1 btn-green rounded-lg text-xs font-bold shrink-0 shadow-sm">🔍 検索</button>
             </form>
-            <div class="flex items-center gap-1 shrink-0">
-              <button id="slot-ch-btn-${i}" type="button" onclick="openPlayingMediaChannel(${i})" class="px-1.5 py-0.5 rounded border text-[10px] transition-colors max-w-[95px] truncate ${hasMedia ? 'badge-green hover:bg-emerald-600 hover:text-white font-bold' : 'theme-panel theme-text-muted opacity-50'}">📺 ${hasMedia ? escapeHtml(shortAuthor) : 'CH'}</button>
-              <button id="slot-like-btn-${i}" type="button" onclick="ratePlayingYouTubeVideo(${i})" class="px-1.5 py-0.5 rounded border text-[10px] font-bold ${isLiked ? 'badge-green border-emerald-500' : 'theme-panel theme-text-sub hover:text-emerald-500'}" title="高評価">👍${likeCount > 0 ? ' ' + likeCount.toLocaleString() : ''}</button>
-              <button type="button" onclick="openSaveToPlaylistModal(${i})" class="px-1.5 py-0.5 rounded border text-[10px] theme-panel theme-text-sub hover:text-emerald-500" title="プレイリスト・後で見るに保存">📂</button>
-              <button id="slot-fav-btn-${i}" type="button" onclick="toggleMediaFavorite(${i})" class="px-1.5 py-0.5 rounded border text-[10px] ${isFav ? 'badge-orange font-bold' : 'theme-panel theme-text-sub'}">${isFav ? '★' : '☆'}</button>
-              <button id="slot-main-btn-${i}" onclick="focusMainAudio(${i})" class="px-1.5 py-0.5 rounded border text-[10px] ${isMain ? 'badge-orange font-bold' : 'theme-panel theme-text-sub'}">${isMain ? '👑' : '🔈'}</button>
-              <div class="flex items-center gap-1 theme-panel px-1 py-0.5 rounded border">
-                <button id="slot-mute-btn-${i}" onclick="toggleSlotMute(${i})" class="text-[11px]">${slot.muted || slot.volume === 0 ? '🔇' : '🔊'}</button>
-                <input id="slot-vol-slider-${i}" type="range" min="0" max="100" value="${slot.muted ? 0 : slot.volume}" oninput="handleSlotVolume(${i}, this.value)" class="w-10 slider-orange cursor-pointer" />
-                <span id="slot-vol-label-${i}" class="text-[9px] w-6 text-right theme-text-sub">${slot.muted ? '0%' : slot.volume + '%'}</span>
+            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+              <button id="slot-ch-btn-${i}" type="button" onclick="openPlayingMediaChannel(${i})" class="px-2.5 py-1 rounded-lg border text-xs transition-colors max-w-[130px] truncate ${hasMedia ? 'badge-green hover:bg-emerald-600 hover:text-white font-bold' : 'theme-panel theme-text-muted opacity-50'}">📺 ${hasMedia ? escapeHtml(shortAuthor) : 'CH詳細'}</button>
+              <button id="slot-like-btn-${i}" type="button" onclick="ratePlayingYouTubeVideo(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors ${isLiked ? 'badge-green border-emerald-500' : 'theme-panel theme-text-sub hover:text-emerald-500'}" title="高評価">👍 高評価${likeCount > 0 ? ' ' + likeCount.toLocaleString() : ''}</button>
+              <button type="button" onclick="openSaveToPlaylistModal(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold theme-panel theme-text-sub hover:text-emerald-500" title="プレイリスト・後で見るに保存">📂 保存</button>
+              <button id="slot-fav-btn-${i}" type="button" onclick="toggleMediaFavorite(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors ${isFav ? 'badge-orange' : 'theme-panel theme-text-sub hover:text-orange-500'}">${isFav ? '★ 登録済' : '☆ お気に入り'}</button>
+              <button id="slot-main-btn-${i}" onclick="focusMainAudio(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors ${isMain ? 'badge-orange' : 'theme-panel theme-text-sub'}">${isMain ? '👑 メイン音声' : '🔈 メイン切替'}</button>
+              <div class="flex items-center gap-1.5 theme-panel px-2 py-0.5 rounded-lg border">
+                <button id="slot-mute-btn-${i}" onclick="toggleSlotMute(${i})" class="text-sm" title="ミュート切替">${slot.muted || slot.volume === 0 ? '🔇' : '🔊'}</button>
+                <input id="slot-vol-slider-${i}" type="range" min="0" max="100" value="${slot.muted ? 0 : slot.volume}" oninput="handleSlotVolume(${i}, this.value)" class="w-14 sm:w-16 slider-orange cursor-pointer" />
+                <span id="slot-vol-label-${i}" class="text-[11px] font-medium w-8 text-right theme-text-sub">${slot.muted ? '0%' : slot.volume + '%'}</span>
               </div>
-              <button onclick="toggleMultiSlotShortMode(${i})" class="px-1.5 py-0.5 rounded border text-[10px] ${isShort ? 'badge-orange font-bold' : 'theme-panel theme-text-sub'}">9:16</button>
-              ${!is2VerticalStack ? `<button onclick="optimizeMultiSlotSize(${i})" class="px-1.5 py-0.5 rounded border text-[10px] badge-orange font-bold">📐</button>` : ''}
-              <button id="slot-chat-btn-${i}" onclick="toggleSlotChat(${i})" class="px-1.5 py-0.5 rounded border text-[10px] ${slot.showChat ? 'badge-green font-bold' : 'theme-panel theme-text-sub'}">💬</button>
-              <button id="slot-min-btn-${i}" onclick="toggleSlotMinimize(${i})" class="px-1.5 py-0.5 rounded border text-[10px] theme-panel theme-text-sub">${slot.minimized ? '▼' : '▲'}</button>
-              <button onclick="clearMultiSlot(${i})" class="px-1.5 py-0.5 rounded border text-[10px] theme-panel theme-text-sub hover:text-orange-500">✕</button>
+              <button onclick="toggleMultiSlotShortMode(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold ${isShort ? 'badge-orange' : 'theme-panel theme-text-sub'}">📱 9:16</button>
+              ${!is2VerticalStack ? `<button onclick="optimizeMultiSlotSize(${i})" class="px-2.5 py-1 rounded-lg border text-xs badge-orange font-bold">📐 最適幅</button>` : ''}
+              <button id="slot-chat-btn-${i}" onclick="toggleSlotChat(${i})" class="px-3 py-1 rounded-lg border text-xs font-bold transition-colors ${slot.showChat ? 'badge-green' : 'theme-panel theme-text-sub'}">${slot.showChat ? '💬 コメントON' : '💬 コメントOFF'}</button>
+              <button id="slot-min-btn-${i}" onclick="toggleSlotMinimize(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold theme-panel theme-text-sub">${slot.minimized ? '▼ 展開' : '▲ 最小化'}</button>
+              <button onclick="clearMultiSlot(${i})" class="px-2.5 py-1 rounded-lg border text-xs font-bold theme-panel theme-text-sub hover:text-orange-500" title="この枠をクリア">✕</button>
             </div>
           </div>
           <div id="slot-body-${i}" class="${slot.minimized ? 'hidden' : bodyFlexClass}">
@@ -1645,18 +1653,18 @@
               <div id="slot-video-container-${i}" class="w-full h-full flex items-center justify-center overflow-hidden"></div>
             </div>
             <div id="slot-chat-pane-${i}" class="${chatPaneClass}">
-              <div class="flex flex-wrap items-center justify-between gap-1 px-2 py-0.5 theme-sub border-b text-[10px] shrink-0">
-                <div class="flex items-center gap-1 min-w-0">
-                  <span id="slot-chat-title-${i}" class="font-bold theme-text truncate max-w-[110px]">パネル</span>
-                  <div class="flex items-center theme-panel p-0.5 rounded border gap-0.5">
-                    <button id="slot-${i}-tab-comments" onclick="setMediaInfoTab(${i}, 'comments')" class="px-1.5 py-0.2 rounded ${activeInfoTab === 'comments' ? 'font-bold btn-mono' : 'theme-text-sub'}">💬 コメ/チャット</button>
-                    <button id="slot-${i}-tab-related" onclick="setMediaInfoTab(${i}, 'related')" class="px-1.5 py-0.2 rounded ${activeInfoTab === 'related' ? 'font-bold btn-mono' : 'theme-text-sub'}">🎬 関連動画</button>
-                    <button id="slot-${i}-tab-desc" onclick="setMediaInfoTab(${i}, 'desc')" class="px-1.5 py-0.2 rounded ${activeInfoTab === 'desc' ? 'font-bold btn-mono' : 'theme-text-sub'}">📝 概要・操作</button>
+              <div class="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1 theme-sub border-b text-xs shrink-0">
+                <div class="flex flex-wrap items-center gap-2 min-w-0">
+                  <span id="slot-chat-title-${i}" class="font-bold theme-text truncate max-w-[120px]">パネル</span>
+                  <div class="flex items-center theme-panel p-0.5 rounded-lg border gap-1 shadow-sm">
+                    <button id="slot-${i}-tab-comments" onclick="setMediaInfoTab(${i}, 'comments')" class="px-3 py-1 rounded-md text-xs ${activeInfoTab === 'comments' ? 'font-bold btn-mono shadow-sm' : 'font-medium theme-text-sub'}">💬 コメント/チャット</button>
+                    <button id="slot-${i}-tab-related" onclick="setMediaInfoTab(${i}, 'related')" class="px-3 py-1 rounded-md text-xs ${activeInfoTab === 'related' ? 'font-bold btn-mono shadow-sm' : 'font-medium theme-text-sub'}">🎬 関連動画</button>
+                    <button id="slot-${i}-tab-desc" onclick="setMediaInfoTab(${i}, 'desc')" class="px-3 py-1 rounded-md text-xs ${activeInfoTab === 'desc' ? 'font-bold btn-mono shadow-sm' : 'font-medium theme-text-sub'}">📝 概要・操作</button>
                   </div>
                 </div>
-                <div class="flex items-center gap-1">
-                  <a id="slot-chat-popout-${i}" href="#" target="_blank" rel="noopener noreferrer" class="hidden theme-text-sub">↗</a>
-                  <button onclick="toggleSlotChat(${i})" class="theme-text-sub hover:text-orange-500">✕</button>
+                <div class="flex items-center gap-1.5">
+                  <a id="slot-chat-popout-${i}" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-2 py-0.5 rounded border theme-panel theme-text-sub hover:text-emerald-500 text-xs font-bold">↗ 別窓</a>
+                  <button onclick="toggleSlotChat(${i})" class="px-2 py-0.5 rounded border theme-panel theme-text-sub hover:text-orange-500 text-xs font-bold">✕</button>
                 </div>
               </div>
               <div id="slot-chat-container-${i}" class="flex-1 flex flex-col items-center justify-center text-xs theme-text-muted overflow-hidden">未選択</div>
@@ -1716,12 +1724,12 @@
       slot.twitchPlayer = null;
       if (!slot.media) {
         show(badge, false);
-        container.innerHTML = `<div class="text-center p-4 text-zinc-500 text-xs space-y-2"><p>SLOT ${idx + 1} 未設定</p><button onclick="openSearchModal(${idx})" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg border border-zinc-700 text-xs">🔍 動画を検索してセット</button></div>`;
+        container.innerHTML = `<div class="text-center p-4 text-zinc-500 text-xs space-y-2"><p>SLOT ${idx + 1} 未設定</p><button onclick="openSearchModal(${idx})" class="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg border border-zinc-700 text-xs font-bold">🔍 動画を検索してセット</button></div>`;
         return;
       }
       if (badge) {
         show(badge, true);
-        badge.className = `px-1.5 py-0.5 text-[10px] font-bold rounded shrink-0 ${slot.media.platform === 'youtube' ? 'btn-mono' : 'badge-orange border'}`;
+        badge.className = `px-2 py-1 text-[10px] font-bold rounded-md shrink-0 ${slot.media.platform === 'youtube' ? 'btn-mono' : 'badge-orange border'}`;
         badge.textContent = slot.media.platform === 'youtube' ? (slot.media.type === 'playlist' ? '📂 LIST' : 'YT') : (slot.media.gameName ? `TW·${slot.media.gameName.slice(0, 8)}` : 'TW');
       }
       container.innerHTML = '';
@@ -1762,7 +1770,7 @@
 
       if (slot.media.platform === 'youtube') {
         if (slot.media.isShort || !slot.media.isLive) {
-          chatTitle.textContent = `💬 コメ`; popout.href = `https://www.youtube.com/watch?v=${encodeURIComponent(slot.media.id)}`; show(popout, true);
+          chatTitle.textContent = `💬 コメント`; popout.href = `https://www.youtube.com/watch?v=${encodeURIComponent(slot.media.id)}`; show(popout, true);
           return renderYouTubeCommentsPanel(chatContainer, slot.media.id, idx);
         }
         chatTitle.textContent = `🟠 YTチャット`; popout.href = `https://www.youtube.com/live_chat?v=${encodeURIComponent(slot.media.id)}&is_popout=1`; show(popout, true);
@@ -1827,7 +1835,7 @@
       return '📁';
     };
 
-    // ★興味のあるキーワード・タグのピン留め管理
+    // 興味のあるキーワード・タグのピン留め管理
     function renderInterestTagsBar() {
       const listEl = $('interest-tags-list');
       if (!listEl) return;
@@ -1917,7 +1925,7 @@
       else searchYouTubeVideos(tag, false);
     }
 
-    // 登録CHフォルダ管理
+    // 登録CHフォルダ管理（サブタブを廃止しシンプル化）
     function handleCreateSubFolder(e) {
       if (e) e.preventDefault();
       const input = $('new-folder-name-input'), name = (input?.value || '').trim();
@@ -1927,7 +1935,7 @@
       saveSubFoldersToStorage();
       if (input) input.value = '';
       showToast(`📁 フォルダ「${name}」を作成しました`);
-      renderSubsView();
+      setSubsViewMode('folders', null);
     }
 
     function toggleChannelInFolder(channelId, folderId, event = null) {
@@ -1949,7 +1957,7 @@
       const validModes = ['channels', 'folders', 'live_streams', 'upcoming_streams', 'today_videos'];
       state.search.subsViewMode = validModes.includes(mode) ? mode : 'channels';
       if (folderId !== undefined) state.search.activeFolderId = folderId;
-      else if (state.search.subsViewMode === 'folders') state.search.activeFolderId = null;
+      else state.search.activeFolderId = null;
       state.search.pagination.currentPage = 1; state.search.scrollTop = 0;
       renderSubsView(0, false);
       if (pushHistory) pushAppHistoryState(`subsView:${state.search.subsViewMode}:${state.search.activeFolderId || 'all'}`);
@@ -1958,7 +1966,7 @@
     function selectSubsFolderFilter(folderId) {
       syncCurrentSnapshotState();
       state.search.activeFolderId = folderId;
-      if (folderId !== null && state.search.subsViewMode === 'folders') state.search.subsViewMode = 'channels';
+      if (folderId !== null) state.search.subsViewMode = 'channels';
       state.search.pagination.currentPage = 1; state.search.scrollTop = 0;
       renderSubsView(0, false);
       pushAppHistoryState(`subsFolder:${folderId || 'all'}`);
@@ -2115,8 +2123,11 @@
       renderCardGrid(matched, 'results', 0);
     }
 
+    // ★サブタブを廃止し、メインの「CH一覧」「フォルダ」ボタンと開いているフォルダの操作ボタンのみを表示
     function updateSubsFolderToolbarUI() {
       const allSubs = state.search.libraryCache.subs || [], folders = state.search.subFolders || [], mode = state.search.subsViewMode;
+      const activeFid = state.search.activeFolderId;
+
       [['btn-subs-view-channels', 'channels', `📺 CH一覧 (${allSubs.length})`, 'btn-mono'],
        ['btn-subs-view-folders', 'folders', `📁 フォルダ (${folders.length})`, 'btn-green'],
        ['btn-subs-view-live', 'live_streams', '🟠 LIVE中', 'btn-orange'],
@@ -2126,30 +2137,26 @@
         const el = $(id);
         if (el) {
           el.textContent = lbl;
-          el.className = `px-2.5 py-1 rounded-md text-xs transition-colors ${mode === k ? 'font-bold ' + act + ' shadow-sm' : 'font-medium theme-text-sub hover:opacity-80'}`;
+          const isActive = (k === 'folders' && (mode === 'folders' || activeFid !== null)) || (k === mode && activeFid === null);
+          el.className = `px-3 py-1 rounded-md text-xs transition-colors ${isActive ? 'font-bold ' + act + ' shadow-sm' : 'font-medium theme-text-sub hover:opacity-80'}`;
         }
       });
 
-      const pillsBar = $('subs-folder-pills-bar');
-      if (!pillsBar) return;
-      const activeFid = state.search.activeFolderId, unassignedCount = getUnassignedSubsChannels(allSubs).length;
-      const isFoldersView = mode === 'folders' && !activeFid;
-
-      let html = `
-        <button type="button" onclick="setSubsViewMode('folders', null)" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 ${isFoldersView ? 'btn-green font-bold shadow-sm' : 'theme-panel theme-text-sub'}">📁 フォルダ一覧 (${folders.length})</button>
-        <button type="button" onclick="selectSubsFolderFilter(null)" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 ${!isFoldersView && activeFid === null ? 'btn-mono font-bold shadow-sm' : 'theme-panel theme-text-sub'}">📺 すべて (${allSubs.length})</button>
-      `;
-      folders.forEach((f) => {
-        const count = allSubs.filter((ch) => (f.channelIds || []).includes(normalizeChannelId(ch.channelId || ch.id))).length;
-        const isSel = !isFoldersView && activeFid === f.id;
-        html += `<button type="button" onclick="selectSubsFolderFilter('${escapeHtml(f.id)}')" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 flex items-center gap-1 ${isSel ? 'btn-orange font-bold shadow-sm' : 'theme-panel theme-text-sub hover:border-emerald-500/60'}"><span>${escapeHtml(orStr(f.icon, '📁'))}</span><span>${escapeHtml(f.name)}</span><span class="opacity-80">(${count})</span></button>`;
-      });
-      html += `<button type="button" onclick="selectSubsFolderFilter('__unassigned__')" class="px-2.5 py-1 rounded-lg border text-[11px] shrink-0 ${!isFoldersView && activeFid === '__unassigned__' ? 'btn-mono font-bold shadow-sm' : 'theme-panel theme-text-muted'}">🏷️ 未分類 (${unassignedCount})</button>`;
-      if (activeFid && activeFid !== '__unassigned__') {
+      const actionsEl = $('subs-active-folder-actions');
+      if (!actionsEl) return;
+      if (activeFid) {
         const fObj = folders.find((f) => f.id === activeFid);
-        if (fObj) html += `<button type="button" onclick="openBulkAssignModalForFolder('${escapeHtml(fObj.id)}')" class="ml-auto px-2.5 py-1 rounded-lg badge-green hover:bg-emerald-600 hover:text-white border text-[11px] font-bold shrink-0 shadow-sm">➕ 「${escapeHtml(fObj.name)}」にCHを追加・整理</button>`;
+        const fName = activeFid === '__unassigned__' ? '未分類' : orStr(fObj?.name, 'フォルダ');
+        show(actionsEl, true);
+        actionsEl.innerHTML = `
+          <span class="px-2.5 py-1 rounded-lg badge-orange border text-xs font-bold">📂 ${escapeHtml(fName)}</span>
+          ${fObj ? `<button type="button" onclick="openBulkAssignModalForFolder('${escapeHtml(fObj.id)}')" class="px-2.5 py-1 rounded-lg badge-green hover:bg-emerald-600 hover:text-white border text-xs font-bold shadow-sm">➕ CHを追加・整理</button>` : ''}
+          <button type="button" onclick="setSubsViewMode('folders', null)" class="px-2.5 py-1 rounded-lg theme-panel hover:text-orange-500 border text-xs font-bold">⬅ フォルダ一覧へ</button>
+        `;
+      } else {
+        show(actionsEl, false);
+        actionsEl.innerHTML = '';
       }
-      pillsBar.innerHTML = html;
     }
 
     function renderSubsView(restoreScrollTop = null, forceRefreshScan = false) {
@@ -2276,7 +2283,6 @@
       }, { passive: true });
     }
 
-    // ★1箇所に統合された更新ボタン処理
     function refreshCurrentTabData(showNotice = false) {
       const tab = state.search.tab, q = ($('search-query-input')?.value || '').trim();
       if (showNotice) showToast('🔄 最新情報を取得しています...');
@@ -2417,20 +2423,21 @@
       } else navigateToChannelDetailInApp(media.channelId || '', media.author || '', '', media.currentVideoId || media.firstVideoId || (media.type === 'video' ? media.id : ''), target);
     }
 
+    // ★シングル・マルチ両方のCH詳細ボタンを大きく見やすいサイズで更新
     function updateChannelButtonUI(target) {
       if (target === 'single') {
         const btn = $('btn-single-channel'), m = state.single.media;
         if (!btn) return;
-        if (!m) { btn.className = 'px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-muted opacity-60 max-w-[160px] truncate'; btn.textContent = '📺 CH詳細'; return; }
+        if (!m) { btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-muted opacity-60 max-w-[200px] truncate shrink-0'; btn.textContent = '📺 CH詳細'; return; }
         const authorLabel = (m.author && m.author !== 'YouTube' && !m.author.includes('プレイリスト')) ? `: ${m.author}` : '';
-        btn.className = 'px-2 py-1 rounded-lg border text-xs font-bold badge-green hover:bg-emerald-600 hover:text-white transition-colors max-w-[170px] truncate';
+        btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-bold badge-green hover:bg-emerald-600 hover:text-white transition-colors max-w-[200px] truncate shrink-0';
         btn.textContent = `📺 CH詳細${authorLabel}`;
       } else {
         const btn = $(`slot-ch-btn-${target}`), slot = state.multi.slots[target];
         if (!btn || !slot) return;
-        if (!slot.media) { btn.className = 'px-1.5 py-0.5 rounded border text-[10px] theme-panel theme-text-muted opacity-50'; btn.textContent = '📺 CH'; return; }
-        btn.className = 'px-1.5 py-0.5 rounded border text-[10px] badge-green hover:bg-emerald-600 hover:text-white font-bold transition-colors max-w-[95px] truncate';
-        btn.textContent = `📺 ${(slot.media.author && slot.media.author !== 'YouTube') ? slot.media.author.slice(0, 8) : 'CH詳細'}`;
+        if (!slot.media) { btn.className = 'px-2.5 py-1 rounded-lg border text-xs theme-panel theme-text-muted opacity-50'; btn.textContent = '📺 CH詳細'; return; }
+        btn.className = 'px-2.5 py-1 rounded-lg border text-xs badge-green hover:bg-emerald-600 hover:text-white font-bold transition-colors max-w-[130px] truncate';
+        btn.textContent = `📺 ${(slot.media.author && slot.media.author !== 'YouTube') ? slot.media.author.slice(0, 10) : 'CH詳細'}`;
       }
     }
 
@@ -2688,20 +2695,21 @@
 
     const isMediaFavorited = (m) => m?.id && state.search.favorites.some((f) => f.platform === m.platform && f.id === (m.type === 'playlist' ? (m.listId || m.id) : (m.currentVideoId || m.id)));
 
+    // ★シングル・マルチ両方のお気に入りボタンを大きく押しやすいサイズで更新
     function updateFavButtonUI(target) {
       if (target === 'single') {
         const btn = $('btn-single-fav'), m = state.single.media;
         if (!btn) return;
-        if (!m) { btn.className = 'px-2 py-1 rounded-lg border text-xs font-medium theme-sub theme-text-muted opacity-60'; btn.textContent = '☆ お気に入り'; return; }
+        if (!m) { btn.className = 'px-2.5 py-1.5 rounded-lg border text-xs font-medium theme-sub theme-text-muted opacity-60 shrink-0'; btn.textContent = '☆ お気に入り'; return; }
         const fav = isMediaFavorited(m);
-        btn.className = `px-2 py-1 rounded-lg border text-xs transition-colors ${fav ? 'badge-orange font-bold' : 'theme-sub theme-text-sub hover:text-orange-500 font-medium'}`;
+        btn.className = `px-2.5 py-1.5 rounded-lg border text-xs shrink-0 transition-colors ${fav ? 'badge-orange font-bold' : 'theme-sub theme-text-sub hover:text-orange-500 font-medium'}`;
         btn.textContent = fav ? '★ 登録済' : '☆ お気に入り';
       } else {
         const btn = $(`slot-fav-btn-${target}`), slot = state.multi.slots[target];
         if (!btn || !slot) return;
         const fav = isMediaFavorited(slot.media);
-        btn.className = `px-1.5 py-0.5 rounded border text-[10px] transition-colors ${fav ? 'badge-orange font-bold' : 'theme-panel theme-text-sub hover:text-orange-500'}`;
-        btn.textContent = fav ? '★' : '☆';
+        btn.className = `px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors ${fav ? 'badge-orange' : 'theme-panel theme-text-sub hover:text-orange-500'}`;
+        btn.textContent = fav ? '★ 登録済' : '☆ お気に入り';
       }
     }
 
@@ -2818,7 +2826,6 @@
       throw new Error('No YouTube API credentials');
     }
 
-    // ★独立した「📌 後で見る」タブ表示
     async function openWatchLaterTabView() {
       state.search.activeChannel = null;
       show('channel-detail-toolbar', false);
@@ -2845,7 +2852,6 @@
       }
     }
 
-    // マイプレイリスト一覧（「後で見る」を分離して純粋なプレイリスト一覧に）
     async function fetchMyYouTubePlaylists(forceRefresh = false, appendNextPage = false) {
       state.search.activeChannel = null; state.search.activePlaylistContext = null; show('channel-detail-toolbar', false); show('playlist-detail-toolbar', false);
 
@@ -3120,7 +3126,6 @@
       expandPlaylistItems(parsed.listId || parsed.id, `プレイリスト (${parsed.id})`);
     }
 
-    // 登録CHの傾向キーワード抽出（傾向おすすめCH開拓用）
     function extractSubTrendDiscoveryQueries() {
       const subs = state.search.libraryCache.subs || [];
       const keywords = [];
@@ -3206,7 +3211,6 @@
       }).filter((it) => it.id);
     }
 
-    // ★3大ソース統合おすすめエンジン（①視聴履歴からの関連動画 ＋ ②登録CHの最新アップロード ＋ ③登録CHの傾向からおすすめCHの動画）
     async function loadYouTubeRecommendations(forceRefresh = false) {
       state.search.activePlaylistContext = null; show('playlist-detail-toolbar', false); resetPagination('yt_recommend');
       renderInterestTagsBar();
@@ -3223,11 +3227,10 @@
       const historyVideos = state.search.history.filter((h) => h.platform === 'youtube' && !isPlaylistItemObject(h) && h.id);
       const watchedIdsSet = new Set(historyVideos.slice(0, 30).map((h) => h.id));
 
-      const bucketSubsLatest = [];    // 📺 登録CH新着
-      const bucketHistoryRelated = []; // 🕒 視聴履歴関連
-      const bucketTrendDiscovery = []; // ✨ 傾向おすすめCH
+      const bucketSubsLatest = [];
+      const bucketHistoryRelated = [];
+      const bucketTrendDiscovery = [];
 
-      // 【柱①：登録チャンネルの最新アップロード】
       const fetchPillarSubsLatest = async () => {
         if (!subList.length) return;
         const offset = forceRefresh ? Math.floor(Math.random() * Math.max(1, subList.length - 12)) : 0;
@@ -3258,12 +3261,10 @@
         }));
       };
 
-      // 【柱②：視聴履歴からの関連動画】
       const fetchPillarHistoryRelated = async () => {
         const seedHistory = historyVideos.slice(0, 3);
         if (!seedHistory.length) return;
         await Promise.all(seedHistory.map(async (hItem) => {
-          // まずPipedストリームから直接の関連動画取得を試行
           let gotFromPiped = false;
           try {
             const d = await fetchFromPipedParallel(`/streams/${encodeURIComponent(hItem.id)}`, 3200);
@@ -3277,7 +3278,6 @@
             }
           } catch {}
 
-          // 公式APIが使える場合は視聴履歴のタイトル・投稿者から関連検索
           if (!gotFromPiped && (state.search.ytApiKey || isOAuthTokenValid())) {
             try {
               const cleanTitle = (hItem.title || '').replace(/【.*?】|\[.*?\]|#\S+/g, ' ').trim().slice(0, 22);
@@ -3305,7 +3305,6 @@
         }));
       };
 
-      // 【柱③：登録CHの傾向・興味タグからオススメCHのオススメ動画（未登録CHの発見）】
       const fetchPillarSubTrendDiscovery = async () => {
         const trendQueries = extractSubTrendDiscoveryQueries();
         await Promise.all(trendQueries.map(async (qWord) => {
@@ -3344,19 +3343,15 @@
         }));
       };
 
-      // 3大ソースを並列実行
       await Promise.all([
         fetchPillarSubsLatest(),
         fetchPillarHistoryRelated(),
         fetchPillarSubTrendDiscovery()
       ]);
 
-      // 登録CH新着を新しい順にソート
       bucketSubsLatest.sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime());
-      // 傾向おすすめは未登録チャンネル（新規開拓）を優先
       bucketTrendDiscovery.sort((a, b) => Number(Boolean(b.isUnregisteredDiscovery)) - Number(Boolean(a.isUnregisteredDiscovery)));
 
-      // 3つのバケットをバランス良く交互にブレンド（インターリーブ）
       const interleaved = [];
       const maxLen = Math.max(bucketSubsLatest.length, bucketHistoryRelated.length, bucketTrendDiscovery.length);
       for (let i = 0; i < maxLen; i++) {
@@ -3374,7 +3369,6 @@
         }
       });
 
-      // 候補が少ない場合は視聴済みも含めて補完
       if (merged.length < 8) {
         interleaved.forEach((it) => {
           if (it?.id && !seen.has(it.id)) {
@@ -3384,7 +3378,6 @@
         });
       }
 
-      // 終了済み配信のLIVE表記残りや配信開始日時を最新ステータスで一括補正
       merged = await enrichYouTubeVideoItems(merged, true);
 
       const filtered = filterSearchItemsByCategory(merged, filter);
